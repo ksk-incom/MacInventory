@@ -1,0 +1,295 @@
+# App Hints Entry Template
+#
+# This template shows all available fields for an app-hints.yaml entry.
+# Copy and modify for new applications.
+#
+# Schema (must match exactly):
+#   app-name:                           # Lowercase, hyphenated app identifier
+#     bundle_id: string | null          # macOS bundle identifier (null for CLI tools)
+#     install_method: string            # cask | formula | mas | dmg | system
+#     configuration_files: [string]     # Paths relative to $HOME (no ~/ prefix)
+#     xdg_configuration_files: [string] # Paths relative to $XDG_CONFIG_HOME
+#     exclude_files: [string]           # Files to skip (optional)
+#     extensions_cmd: string            # Command to list extensions (optional)
+#     notes: string                     # Restoration instructions (optional)
+#
+# IMPORTANT: Paths are RELATIVE (no ~/ prefix)
+#   - configuration_files: "Library/Application Support/App/" (not "~/Library/...")
+#   - xdg_configuration_files: "appname/" (not "~/.config/appname/")
+
+# -----------------------------------------------------------------------------
+# MINIMAL ENTRY (just the essentials)
+# -----------------------------------------------------------------------------
+
+minimal-app:
+  bundle_id: com.developer.MinimalApp
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/MinimalApp/
+
+# -----------------------------------------------------------------------------
+# STANDARD ENTRY (recommended format)
+# -----------------------------------------------------------------------------
+
+standard-app:
+  bundle_id: com.developer.StandardApp
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/StandardApp/settings.json
+    - Library/Preferences/com.developer.StandardApp.plist
+  exclude_files:
+    - "*.log"
+    - "Cache/"
+    - "*.tmp"
+    - "Logs/"
+  notes: |
+    Standard configuration layout with preferences plist and app support folder.
+    Settings JSON in Application Support, simple prefs in plist.
+
+# -----------------------------------------------------------------------------
+# DETAILED ENTRY (all fields)
+# -----------------------------------------------------------------------------
+
+detailed-app:
+  # macOS bundle identifier (use osascript -e 'id of app "AppName"' to find)
+  bundle_id: com.developer.DetailedApp
+
+  # Installation method: cask | formula | mas | dmg | system
+  install_method: cask
+
+  # Paths relative to $HOME (no ~/ prefix)
+  configuration_files:
+    - Library/Application Support/DetailedApp/settings.json
+    - Library/Application Support/DetailedApp/keybindings.json
+    - Library/Application Support/DetailedApp/themes/
+    - Library/Preferences/com.developer.DetailedApp.plist
+    - .detailedapprc
+
+  # Paths relative to $XDG_CONFIG_HOME (default ~/.config/, no prefix)
+  xdg_configuration_files:
+    - detailedapp/config.yaml
+    - detailedapp/plugins/
+
+  # Files/directories to exclude from backup
+  exclude_files:
+    # Logs
+    - "*.log"
+    - "Logs/"
+    - "logs/"
+    # Caches
+    - "Cache/"
+    - "Caches/"
+    - "cache/"
+    - "*.cache"
+    - "CachedData/"
+    - "GPUCache/"
+    # Temporary files
+    - "*.tmp"
+    - "*.temp"
+    - "temp/"
+    - "Temp/"
+    # Generated/large data
+    - "*.sqlite"
+    - "*.db"
+    - "IndexedDB/"
+    # App-specific exclusions
+    - "Updates/"
+    - "Backups/"
+    - "Crash Reports/"
+
+  # Optional: command to list extensions (for editors/IDEs)
+  extensions_cmd: "detailed-app --list-extensions"
+
+  # Restoration notes and metadata
+  notes: |
+    Discovery methodology:
+    - Found Application Support via standard location check
+    - Plist found by bundle ID search
+    - XDG config documented in README
+
+    Config files:
+    - settings.json: Main application settings
+    - keybindings.json: Custom keyboard shortcuts
+    - themes/: User themes directory
+    - com.developer.DetailedApp.plist: Window state and simple prefs
+
+    Notes:
+    - App syncs some settings via iCloud (Group Containers)
+    - Database files are for app data, not config
+    - Theme files can be large if many installed
+
+    Verified: 2024-01-15
+    Source: Official documentation + file system exploration
+
+# -----------------------------------------------------------------------------
+# SANDBOXED APP (Mac App Store)
+# Mac App Store apps use Container directories
+# -----------------------------------------------------------------------------
+
+sandboxed-app:
+  bundle_id: com.developer.SandboxedApp
+  install_method: mas
+
+  # Sandboxed apps store config in Containers
+  configuration_files:
+    - Library/Containers/com.developer.SandboxedApp/Data/Library/Preferences/
+    - Library/Containers/com.developer.SandboxedApp/Data/Library/Application Support/SandboxedApp/
+    # May also use Group Containers for sharing with extensions
+    - Library/Group Containers/group.com.developer.SandboxedApp/
+
+  exclude_files:
+    - "*.log"
+    - "Cache/"
+    - "Caches/"
+    - "tmp/"
+
+  notes: |
+    Mac App Store sandboxed app. All data in Container.
+    Config is in Container's Library subdirectories.
+    Uses Group Container for share extension sync.
+
+# -----------------------------------------------------------------------------
+# CLI TOOL (Homebrew formula)
+# Command-line tools installed via Homebrew
+# -----------------------------------------------------------------------------
+
+cli-tool:
+  bundle_id: null  # CLI tools have no bundle ID
+  install_method: formula
+
+  # XDG standard location (paths relative to ~/.config/)
+  xdg_configuration_files:
+    - clitool/config.yaml
+    - clitool/plugins/
+
+  # Alternative dotfile locations (paths relative to $HOME)
+  configuration_files:
+    - .clitool
+    - .clitoolrc
+
+  exclude_files:
+    - "*.log"
+    - "cache/"
+
+  notes: |
+    Respects XDG_CONFIG_HOME if set.
+    Falls back to ~/.clitool if XDG location doesn't exist.
+    Config file is YAML format.
+
+# -----------------------------------------------------------------------------
+# CODE EDITOR (with extensions)
+# Editors with extension support use extensions_cmd field
+# -----------------------------------------------------------------------------
+
+code-editor:
+  bundle_id: com.developer.CodeEditor
+  install_method: cask
+
+  configuration_files:
+    # Main settings
+    - Library/Application Support/CodeEditor/User/settings.json
+    - Library/Application Support/CodeEditor/User/keybindings.json
+    - Library/Application Support/CodeEditor/User/snippets/
+    # Extension settings (but not extensions themselves)
+    - Library/Application Support/CodeEditor/User/globalStorage/
+
+  exclude_files:
+    # Exclude caches and generated data
+    - "Cache/"
+    - "CachedData/"
+    - "CachedExtensions/"
+    - "CachedExtensionVSIXs/"
+    - "logs/"
+    - "*.log"
+    - "workspaceStorage/"
+    # Extension binaries (can be reinstalled via extensions_cmd)
+    - "extensions/"
+
+  # Command to generate extension install script
+  extensions_cmd: "code-editor --list-extensions --show-versions"
+
+  notes: |
+    Only backup User settings, not extensions (they can be reinstalled).
+    Extension list captured separately by editor scanner.
+    globalStorage may contain extension-specific settings worth keeping.
+
+# -----------------------------------------------------------------------------
+# BROWSER (limited backup)
+# Browsers have extensive cache - only backup essential config
+# -----------------------------------------------------------------------------
+
+web-browser:
+  bundle_id: com.developer.WebBrowser
+  install_method: cask
+
+  configuration_files:
+    - Library/Application Support/WebBrowser/Default/Preferences
+    - Library/Application Support/WebBrowser/Default/Bookmarks
+    - Library/Application Support/WebBrowser/Local State
+
+  exclude_files:
+    # Browsers have LOTS of cache
+    - "Cache/"
+    - "Code Cache/"
+    - "GPUCache/"
+    - "ShaderCache/"
+    - "Service Worker/"
+    - "*.log"
+    - "Logs/"
+    # History and sessions (privacy)
+    - "History"
+    - "History-journal"
+    - "Sessions/"
+    - "Session Storage/"
+    - "IndexedDB/"
+    - "Local Storage/"
+    - "File System/"
+    # Generated data
+    - "*.sqlite"
+    - "*.db"
+    - "Extensions/"  # Can reinstall
+
+  notes: |
+    Focus on Preferences (settings) and Bookmarks only.
+    Extensions tracked separately, can be reinstalled.
+    Most browser directories are cache/data, not config.
+    Consider privacy implications of backing up browser data.
+
+# -----------------------------------------------------------------------------
+# DMG-INSTALLED APP
+# Apps downloaded as DMG files (not from Homebrew or App Store)
+# -----------------------------------------------------------------------------
+
+dmg-installed-app:
+  bundle_id: com.developer.DmgApp
+  install_method: dmg  # Manual download/install
+
+  configuration_files:
+    - Library/Application Support/DmgApp/
+    - Library/Preferences/com.developer.DmgApp.plist
+
+  exclude_files:
+    - "*.log"
+    - "Cache/"
+
+  notes: |
+    Manually installed via DMG from developer website.
+    Download URL: https://example.com/downloads/app.dmg
+    May require manual re-download during restoration.
+
+# -----------------------------------------------------------------------------
+# SYSTEM APP (pre-installed)
+# Apps that come with macOS
+# -----------------------------------------------------------------------------
+
+system-app:
+  bundle_id: com.apple.SystemApp
+  install_method: system  # Built into macOS
+
+  configuration_files:
+    - Library/Preferences/com.apple.SystemApp.plist
+
+  notes: |
+    Pre-installed macOS application.
+    No installation required during restoration.
+    Only preferences need to be restored.

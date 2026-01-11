@@ -1,0 +1,327 @@
+# Configuration File Pattern Database
+# Used by Tier 2 (Convention Discovery) and Tier 3 (LLM Discovery) to filter backed-up files
+#
+# This file defines an INCLUDE-LIST approach: only files matching these patterns
+# are backed up from convention/LLM discovered paths. Tier 1 (Hints Database)
+# is not filtered - those paths are curated and trusted.
+#
+# Research sources:
+# - Apple Developer Documentation (Library folder structure)
+# - awesome-dotfiles community patterns
+# - ArchWiki Dotfiles guide
+# - macOS container/sandbox documentation
+
+version: "1.0"
+
+# =============================================================================
+# SAFE EXTENSIONS - File extensions that are ALWAYS configuration files
+# =============================================================================
+safe_extensions:
+  # Text-based configuration formats
+  text_configs:
+    - .json
+    - .yaml
+    - .yml
+    - .toml
+    - .conf
+    - .cfg
+    - .ini
+    - .properties
+
+  # macOS-specific formats
+  macos_specific:
+    - .plist       # Property list (may be binary - convert with plutil)
+    - .xml
+
+  # Shell configuration files
+  shell_configs:
+    - .sh
+    - .bash
+    - .zsh
+    - .fish
+    - .bashrc
+    - .zshrc
+    - .profile
+    - .bash_profile
+    - .zprofile
+
+  # Editor/IDE configuration
+  editor_configs:
+    - .lua         # Neovim, Hammerspoon
+    - .vim
+    - .vimrc
+    - .el          # Emacs Lisp
+    - .lisp
+
+  # Additional dotfile formats (from research)
+  dotfiles:
+    - .inputrc     # Readline configuration
+    - .curlrc      # cURL defaults
+    - .wgetrc      # Wget defaults
+    - .editorconfig # EditorConfig standard
+    - .tmux.conf   # Tmux configuration
+    - .screenrc    # Screen configuration
+
+# =============================================================================
+# SAFE FILENAMES - Exact filenames to include (case-insensitive)
+# =============================================================================
+safe_filenames:
+  # Generic config files
+  - config.json
+  - config.yaml
+  - config.yml
+  - config.toml
+  - settings.json
+  - settings.yaml
+  - preferences.json
+  - preferences.yaml
+  - preferences.plist
+
+  # Application-specific
+  - keybindings.json
+  - keybindings.yaml
+  - daemon.json
+  - prefs.yaml
+  - prefs.json
+  - profile.yaml
+  - profile.json
+
+  # Common dotfiles
+  - .gitconfig
+  - .gitignore
+  - .gitignore_global
+  - .gitattributes
+  - .npmrc
+  - .yarnrc
+  - .yarnrc.yml
+  - .pypirc
+  - .gemrc
+  - .prettierrc
+  - .prettierrc.json
+  - .eslintrc
+  - .eslintrc.json
+  - .flake8
+  - .pylintrc
+
+  # macOS registry files (Docker MCP, etc.)
+  - registry.yaml
+  - catalog.json
+
+# =============================================================================
+# SAFE DIRECTORIES - Directory names that typically contain configs
+# When a path is a directory, only recurse if it matches these names
+# =============================================================================
+safe_directories:
+  # Generic config directories
+  - config
+  - configs
+  - settings
+  - preferences
+
+  # Editor-specific
+  - keybindings
+  - snippets
+  - themes
+  - profiles
+  - colors
+  - templates
+
+  # Application patterns
+  - plugins         # Plugin configs (filter contents by extension)
+  - User            # VS Code/Cursor pattern
+  - DynamicProfiles # iTerm2
+  - Scripts         # iTerm2
+
+  # XDG subdirectories
+  - lua             # Neovim lua configs
+  - after           # Neovim after directory
+  - plugin          # Neovim/Vim plugins
+
+  # macOS container subdirectories (for sandboxed apps)
+  - Preferences     # Inside Data/Library/
+  - complex_modifications  # Karabiner
+
+  # MCP (Model Context Protocol) configs
+  - mcp
+  - catalogs
+
+# =============================================================================
+# HARD EXCLUDE PATTERNS - Path patterns to ALWAYS exclude
+# These override safe extensions/filenames - matched with fnmatch/glob
+# =============================================================================
+hard_exclude_patterns:
+  # Cache directories (regenerated on use)
+  - "**/Cache/**"
+  - "**/Caches/**"
+  - "**/cache/**"
+  - "**/CachedData/**"
+  - "**/CachedExtensionVSIXs/**"
+  - "**/CachedExtensions/**"
+  - "**/GPUCache/**"
+  - "**/ShaderCache/**"
+  - "**/Code Cache/**"
+
+  # Log directories
+  - "**/Log/**"
+  - "**/Logs/**"
+  - "**/log/**"
+  - "**/logs/**"
+  - "**/CrashReporter/**"
+  - "**/Crashpad/**"
+  - "**/DiagnosticReports/**"
+
+  # Build and development artifacts
+  - "**/build/**"
+  - "**/buildx/**"
+  - "**/refs/**"
+  - "**/activity/**"
+  - "**/bin/**"
+  - "**/obj/**"
+  - "**/DerivedData/**"
+  - "**/__pycache__/**"
+  - "**/node_modules/**"
+  - "**/.git/**"
+
+  # Runtime/temporary state
+  - "**/models/**"           # Docker AI models (large)
+  - "**/blob_storage/**"     # Chromium blob storage
+  - "**/workspaceStorage/**" # VS Code workspace state
+  - "**/globalStorage/**"    # VS Code global state (contains secrets)
+  - "**/Local Storage/**"    # Electron local storage
+  - "**/Session Storage/**"  # Electron session storage
+  - "**/IndexedDB/**"        # Browser databases
+  - "**/Service Worker/**"   # Service worker cache
+  - "**/WebStorage/**"
+
+  # macOS system directories
+  - "**/Saved Application State/**"
+  - "**/.Spotlight-V100/**"
+  - "**/.fseventsd/**"
+  - "**/.Trashes/**"
+  - "**/.DS_Store"
+
+  # Desktop directory shadows in containers
+  - "**/Data/Desktop/**"
+  - "**/Data/Documents/**"
+  - "**/Data/Downloads/**"
+  - "**/Data/Movies/**"
+  - "**/Data/Music/**"
+  - "**/Data/Pictures/**"
+
+  # Mutagen sync state (Docker)
+  - "**/mutagen/**"
+
+  # Docker contexts and cloud state
+  - "**/contexts/**"
+  - "**/cloud/**"
+  - "**/desktop-build/**"
+
+# =============================================================================
+# HARD EXCLUDE EXTENSIONS - Extensions to ALWAYS exclude
+# These files are never configuration files
+# =============================================================================
+hard_exclude_extensions:
+  # Binary executables
+  - .dylib
+  - .so
+  - .dll
+  - .exe
+  - .bin
+  - .app
+
+  # Database files
+  - .sqlite
+  - .sqlite3
+  - .sqlite-wal
+  - .sqlite-shm
+  - .db
+  - .db-wal
+  - .db-shm
+
+  # Runtime state files
+  - .lock
+  - .pid
+  - .sock
+  - .socket
+
+  # Compiled/cache files
+  - .pyc
+  - .pyo
+  - .class
+  - .o
+  - .obj
+
+  # Archive files (too large, not config)
+  - .zip
+  - .tar
+  - .gz
+  - .bz2
+  - .xz
+  - .7z
+  - .rar
+
+  # Image files (not config)
+  - .png
+  - .jpg
+  - .jpeg
+  - .gif
+  - .ico
+  - .icns
+  - .webp
+  - .svg   # Exception: some configs use SVG, but rare
+
+  # Font files
+  - .ttf
+  - .otf
+  - .woff
+  - .woff2
+
+  # Media files
+  - .mp3
+  - .mp4
+  - .wav
+  - .avi
+  - .mov
+
+  # macOS metadata
+  - .DS_Store
+
+# =============================================================================
+# SIZE LIMITS - Maximum file size for Tier 2/3 discoveries
+# =============================================================================
+size_limits:
+  # Files larger than this are skipped (likely not pure config)
+  max_file_size_bytes: 10485760  # 10MB
+
+  # Warn but include files between these sizes
+  warn_file_size_bytes: 3145728  # 3MB
+
+# =============================================================================
+# PLIST HANDLING - macOS property list file processing
+# =============================================================================
+plist_handling:
+  # Convert binary plists to XML for readability
+  convert_binary_to_xml: true
+
+  # Command to convert (use -o - for stdout)
+  convert_command: "plutil -convert xml1 -o - {source}"
+
+  # Skip plist conversion for these patterns (too large/complex)
+  skip_conversion_patterns:
+    - "**/com.apple.*"  # System plists can be huge
+
+# =============================================================================
+# MACOS CONTAINER PATHS - For sandboxed apps
+# Relative paths to check inside ~/Library/Containers/[bundle.id]/
+# =============================================================================
+macos_container_paths:
+  # Primary config locations
+  paths:
+    - Data/Library/Preferences/
+    - Data/Library/Application Support/
+
+  # Skip these container subdirectories
+  skip_paths:
+    - Data/Library/Caches/
+    - Data/Library/Saved Application State/
+    - Data/tmp/

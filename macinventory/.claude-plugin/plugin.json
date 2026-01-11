@@ -1,0 +1,28 @@
+{
+  "name": "macinventory",
+  "description": "Comprehensive Mac environment documentation and restoration guide generator",
+  "version": "1.1.20",
+  "author": {
+    "name": "Kenneth Skou"
+  },
+  "license": "MIT",
+  "keywords": [
+    "macos",
+    "backup",
+    "inventory",
+    "restoration"
+  ],
+  "commands": [
+    "./commands/inventory.md"
+  ],
+  "agents": [
+    "./agents/app-discovery.md",
+    "./agents/config-validator.md",
+    "./agents/guide-generator.md",
+    "./agents/prerequisites-checker.md",
+    "./agents/verification.md"
+  ],
+  "skills": [
+    "./skills/macos-discovery"
+  ]
+}

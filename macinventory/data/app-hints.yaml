@@ -1,0 +1,7435 @@
+# MacInventory App Hints Database
+# Follows convention: configuration_files (relative to $HOME) vs
+# xdg_configuration_files (relative to $XDG_CONFIG_HOME, default ~/.config)
+#
+# Schema:
+#   app-name:                           # Lowercase, hyphenated app identifier
+#     bundle_id: string                 # macOS bundle identifier (null for CLI tools)
+#     install_method: string            # cask | formula | mas | dmg | system
+#     configuration_files: [string]     # Paths relative to $HOME
+#     xdg_configuration_files: [string] # Paths relative to $XDG_CONFIG_HOME
+#     exclude_files: [string]           # Files to skip (optional)
+#     extensions_cmd: string            # Command to list extensions (optional)
+#     notes: string                     # Restoration instructions (optional)
+#
+# Extend this database using the macos-discovery skill
+
+# =============================================================================
+# PATTERN 1: $XDG_CONFIG_HOME/appname/ (XDG-style)
+# Modern apps following XDG Base Directory Specification
+# Use xdg_configuration_files - paths are relative to $XDG_CONFIG_HOME
+# =============================================================================
+karabiner-elements:
+  bundle_id: org.pqrs.Karabiner-Elements
+  install_method: cask
+  xdg_configuration_files:
+    - karabiner/karabiner.json
+    - karabiner/assets/complex_modifications/
+  notes: "Requires Input Monitoring permission. Backup entire directory, not just karabiner.json (symlink detection requires parent dir)."
+
+neovim:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - nvim/init.lua
+    - nvim/init.vim
+    - nvim/lua/
+    - nvim/colors/
+    - nvim/plugin/
+    - nvim/after/
+  notes: "XDG-compliant. Also checks ~/.config/nvim/ by default. Use $NVIM_APPNAME for multiple configs."
+
+# =============================================================================
+# PATTERN 2: ~/.appname/ (Traditional dotfile directory)
+# Common for CLI tools and cross-platform apps
+# Use configuration_files - paths are relative to $HOME
+# =============================================================================
+docker:
+  bundle_id: com.docker.docker
+  install_method: cask
+  configuration_files:
+    - .docker/config.json
+    - .docker/daemon.json
+    - Library/Group Containers/group.com.docker/settings.json
+  notes: "Requires app restart after config restore. daemon.json controls Docker engine settings."
+
+warp:
+  bundle_id: dev.warp.Warp-Stable
+  install_method: cask
+  configuration_files:
+    - .warp/keybindings.yaml
+    - .warp/prefs.yaml
+    - .warp/themes/
+  notes: "Themes directory contains custom themes. Launch config stored in prefs.yaml."
+
+# =============================================================================
+# PATTERN 3: ~/Library/Application Support/AppName/
+# Standard macOS location for app data and settings
+# Use configuration_files - paths are relative to $HOME
+# =============================================================================
+vscode:
+  bundle_id: com.microsoft.VSCode
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Code/User/settings.json
+    - Library/Application Support/Code/User/keybindings.json
+    - Library/Application Support/Code/User/snippets/
+    - Library/Application Support/Code/User/profiles/
+  extensions_cmd: "code --list-extensions --show-versions"
+  notes: "Extensions stored in ~/.vscode/extensions/ (large, consider excluding). Use extensions_cmd to generate install script."
+
+cursor:
+  bundle_id: com.todesktop.230313mzl4w4u92
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Cursor/User/settings.json
+    - Library/Application Support/Cursor/User/keybindings.json
+    - Library/Application Support/Cursor/User/snippets/
+  extensions_cmd: "cursor --list-extensions --show-versions"
+  notes: "Fork of VS Code. Settings structure mirrors VS Code."
+
+raycast:
+  bundle_id: com.raycast.macos
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/com.raycast.macos/LocalState/
+    - Library/Application Support/com.raycast.macos/SupportedApps/
+  notes: "Has built-in export feature (Cmd+, -> Advanced -> Export). Clipboard history in ~/Library/Caches/."
+
+# =============================================================================
+# PATTERN 4: ~/Library/Preferences/*.plist (macOS native)
+# Traditional macOS preference storage (may be binary)
+# Use configuration_files - paths are relative to $HOME
+# =============================================================================
+iterm2:
+  bundle_id: com.googlecode.iterm2
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.googlecode.iterm2.plist
+    - Library/Application Support/iTerm2/DynamicProfiles/
+    - Library/Application Support/iTerm2/Scripts/
+  notes: "Plist may be binary - use 'plutil -convert xml1' for readable backup. Has built-in sync to custom folder option (Prefs -> General)."
+
+# =============================================================================
+# PATTERN 5: ~/Library/Group Containers/ (Sandboxed apps)
+# Apps distributed via Mac App Store or with App Sandbox
+# Use configuration_files - paths are relative to $HOME
+# =============================================================================
+1password:
+  bundle_id: com.1password.1password
+  install_method: cask
+  configuration_files:
+    - Library/Group Containers/2BUA8C4S2C.com.1password/Library/Preferences/
+  exclude_files:
+    - "*.sqlite"
+    - "*.db"
+  notes: "Vault data synced via 1Password account - only backup local preferences. Do NOT backup database files."
+
+# =============================================================================
+# PATTERN 6: CLI tools with dotfiles (may use BOTH traditional AND XDG)
+# System tools and CLI utilities - some support both locations
+# Git is a good example: checks ~/.gitconfig first, then $XDG_CONFIG_HOME/git/config
+# =============================================================================
+git:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .gitconfig
+    - .gitignore_global
+  xdg_configuration_files:
+    - git/config
+    - git/ignore
+    - git/attributes
+  notes: "Git checks ~/.gitconfig first, then $XDG_CONFIG_HOME/git/config. May contain credential helpers with tokens."
+
+ssh:
+  bundle_id: null
+  install_method: system
+  configuration_files:
+    - .ssh/config
+  exclude_files:
+    - id_rsa
+    - id_rsa.pub
+    - id_ed25519
+    - id_ed25519.pub
+    - id_ecdsa
+    - "*.pem"
+    - known_hosts
+    - authorized_keys
+  notes: "CRITICAL: Never backup private keys. Only backup config file. Recommend generating new keys on restore and updating authorized_keys on servers."
+
+# =============================================================================
+# CONVERSIONS (2025-12-23)
+# Auto-converted - 591 applications
+# =============================================================================
+
+1password-4:
+  bundle_id: com.agilebits.onepassword4
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.agilebits.onepassword4.plist
+    - Library/Preferences/ws.agile.1Password.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+2do:
+  bundle_id: com.guidedways.TodoMac
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.guidedways.TodoMac.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+ack:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .ackrc
+
+act:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .actrc
+
+activitywatch:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/activitywatch
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+adium:
+  bundle_id: com.adiumX.adiumX
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Adium 2.0
+    - Library/Preferences/com.adiumX.adiumX.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+adobe-camera-raw:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Adobe/CameraRaw
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+aerc:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - Library/Preferences/aerc
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+aerospace:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .aerospace.toml
+  xdg_configuration_files:
+    - aerospace/aerospace.toml
+
+affinity-designer:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Containers/Affinity Designer/Data/Library/Application Support/user
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+affinity-photo:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Containers/Affinity Photo/Data/Library/Application Support/user
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+affinity-publisher:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Containers/Affinity Publisher/Data/Library/Application Support/user
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+airflow:
+  bundle_id: com.bitcavehq.Airflow
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.bitcavehq.Airflow.plist
+    - Library/Application Support/Airflow
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+airmail:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Containers/it.bloop.airmail2/Container.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+akamai-cli:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .edgerc
+
+alacritty:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .alacritty.yml
+    - .alacritty.toml
+  xdg_configuration_files:
+    - alacritty/alacritty.yml
+    - alacritty/alacritty.toml
+
+aldente:
+  bundle_id: com.apphousekitchen.aldente-pro
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/AlDente
+    - Library/Preferences/com.apphousekitchen.aldente-pro.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+alt-tab:
+  bundle_id: com.lwouis.alt-tab-macos
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.lwouis.alt-tab-macos.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+amethyst:
+  bundle_id: com.amethyst.Amethyst
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.amethyst.Amethyst.plist
+  xdg_configuration_files:
+    - amethyst/amethyst.yml
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+ancient-domains-of-mystery:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .adom.data
+
+androidstudio-13:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/AndroidStudio1.3
+    - Library/Preferences/AndroidStudio1.3
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+ansible:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .ansible
+    - .ansible.cfg
+
+appcleaner:
+  bundle_id: net.freemacsoft.AppCleaner
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/net.freemacsoft.AppCleaner.plist
+    - Library/Preferences/net.freemacsoft.AppCleaner-SmartDelete.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+appcode-2:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/appCode20
+    - Library/Preferences/appCode20
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+appcode-3:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/appCode30
+    - Library/Preferences/appCode30
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+appcode-31:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/appCode31
+    - Library/Preferences/appCode31
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+appcode-32:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/AppCode32
+    - Library/Preferences/AppCode32
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+apple-music:
+  bundle_id: com.apple.Music.eq
+  install_method: dmg
+  configuration_files:
+    - Library/Music/Scripts
+    - Library/Preferences/com.apple.Music.eq.plist
+    - Library/Preferences/com.apple.Music.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+apptivate:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Apptivate/hotkeys
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+arara:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .araraconfig.yaml
+    - araraconfig.yaml
+
+aria2c:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .aria2
+  xdg_configuration_files:
+    - aria2
+
+arm:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .arm/armrc
+
+asciinema:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - asciinema
+
+asdf:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .asdfrc
+    - .default-gems
+    - .default-npm-packages
+    - .default-python-packages
+    - .default-golang-pkgs
+    - .default-mix-commands
+    - .tool-versions
+
+aspell:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .aspell.conf
+    - .aspell.en.prepl
+    - .aspell.en.pws
+
+astyle:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .astylerc
+
+atlantis:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - Library/Application Support/Atlantis
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+atom:
+  bundle_id: com.github.atom
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.github.atom.plist
+    - .atom/config.cson
+    - .atom/init.coffee
+    - .atom/keymap.cson
+    - .atom/keymaps
+    - .atom/snippets.cson
+    - .atom/styles.less
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+audacious:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - audacious/config
+    - audacious/plugin-registry
+    - audacious/playlists
+    - audacious/playlist-state
+    - audacious/scrobbler.log
+
+auskey:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/AUSkey/keystore.xml
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+autokey:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - autokey
+
+awareness:
+  bundle_id: com.futureproof.awareness
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.futureproof.awareness.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+aws:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .aws
+
+azure:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .azure
+
+b-ryan-powerline-shell:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - powerline-shell/config.json
+
+bartender:
+  bundle_id: com.surteesstudios.Bartender
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.surteesstudios.Bartender.plist
+    - Library/Preferences/com.surteesstudios.Bartender-setapp.plist
+    - Library/Application Support/Bartender/Bartender.BartenderPreferences
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+base:
+  bundle_id: uk.co.menial.Base
+  install_method: cask
+  configuration_files:
+    - Library/Containers/uk.co.menial.Base/Data/Library/Preferences/uk.co.menial.Base.plist
+    - Library/Containers/uk.co.menial.Base/Data/Library/Application Support/Base/
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+bash:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .aliases
+    - .bash_aliases
+    - .bash_login
+    - .bash_logout
+    - .bashrc
+    - .profile
+    - .bash_profile
+    - .inputrc
+
+bash-it:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .bash_it/enabled
+
+bat:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - bat/config
+    - bat/syntaxes
+    - bat/themes
+
+bc:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .bcrc
+
+beatport-pro:
+  bundle_id: com.beatport.BeatportPro
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.beatport.BeatportPro.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+beets:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - beets/config.yaml
+
+bettersnaptool:
+  bundle_id: com.hegenberg.BetterSnapTool
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.hegenberg.BetterSnapTool.plist
+    - Library/Application Support/BetterSnapTool
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+bettertouchtool:
+  bundle_id: com.hegenberg.BetterTouchTool
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/BetterTouchTool/bettertouchtool.license
+    - Library/Application Support/BetterTouchTool/btt_data_store.v2
+    - Library/Application Support/BetterTouchTool/btt_data_store.v2-shm
+    - Library/Application Support/BetterTouchTool/btt_data_store.v2-wal
+    - Library/Application Support/BetterTouchTool/bttdata2
+    - Library/Preferences/com.hegenberg.BetterTouchTool.plist
+    - Library/Application Support/BetterTouchTool/bettersnaptool.bttlicense
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+beyond-compare:
+  bundle_id: com.ScooterSoftware.BeyondCompare
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.ScooterSoftware.BeyondCompare.plist
+    - Library/Application Support/Beyond Compare/BC4Key.txt
+    - Library/Application Support/Beyond Compare/BCColors.xml
+    - Library/Application Support/Beyond Compare/BCCommands.xml
+    - Library/Application Support/Beyond Compare/BCPreferences.xml
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+bibdesk:
+  bundle_id: edu.ucsd.cs.mmccrack.bibdesk
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/edu.ucsd.cs.mmccrack.bibdesk.plist
+    - Library/Application Support/BibDesk
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+billings-pro-server-admin:
+  bundle_id: com.marketcircle.BillingsProServerAdmin
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.marketcircle.BillingsProServerAdmin.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+bitbar:
+  bundle_id: com.matryer.BitBar
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.matryer.BitBar.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+bitchx:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .bitchxrc
+    - .ircservers
+
+blackfire:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .blackfire.ini
+
+blender:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Blender
+  xdg_configuration_files:
+    - blender
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+blesh:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .blerc
+
+boto:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .boto
+
+boxer:
+  bundle_id: net.washboardabs.boxer
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/net.washboardabs.boxer.plist
+    - Applications/DOS Games
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+brackets:
+  bundle_id: io.brackets.appshell
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Brackets
+    - Library/Preferences/io.brackets.appshell.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+brave:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/BraveSoftware/Brave-Browser/Default/Preferences
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+btop:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - btop
+
+bump:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .bump.json
+
+bundler:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .bundle/config
+
+byobu:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .byobu/.screenrc
+    - .byobu/.tmux.conf
+    - .byobu/backend
+    - .byobu/color
+    - .byobu/color.tmux
+    - .byobu/datetime.tmux
+    - .byobu/keybindings
+    - .byobu/keybindings.tmux
+    - .byobu/profile
+    - .byobu/profile.tmux
+    - .byobu/prompt
+    - .byobu/prompt.tmux
+    - .byobu/status
+    - .byobu/statusrc
+    - .byobu/windows
+    - .byobu/windows.tmux
+    - .byoburc
+    - .byoburc.tmux
+    - .byoburc.screen
+
+caffeine:
+  bundle_id: com.intelliscapesolutions.caffeine
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.lightheadsw.Caffeine.plist
+    - Library/Preferences/com.intelliscapesolutions.caffeine.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+calibre:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/calibre
+  xdg_configuration_files:
+    - calibre
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+capture-one:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Capture One
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+cartographica:
+  bundle_id: com.ClueTrust.Cartographica
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Cartographica
+    - Library/Preferences/com.ClueTrust.Cartographica.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+cerebro:
+  bundle_id: cerebro
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Cerebro/config.json
+    - Library/Application Support/Cerebro/plugins
+  xdg_configuration_files:
+    - Cerebro/config.json
+    - Cerebro/plugins
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+charles:
+  bundle_id: com.xk72.Charles
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Charles
+    - Library/Preferences/com.xk72.charles.config
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+cheat:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .cheat
+  xdg_configuration_files:
+    - cheat/conf.yml
+
+chef:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .chef
+
+chicken:
+  bundle_id: net.sourceforge.chicken
+  install_method: formula
+  configuration_files:
+    - Library/Preferences/net.sourceforge.chicken.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+choosy:
+  bundle_id: com.choosyosx.Choosy
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Choosy/behaviours.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+chunkwm:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .chunkwmrc
+    - .chunkwm_plugins
+
+cider:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .cider
+
+clashx:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - clash
+
+clasp:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .clasprc.json
+
+claude-code:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .claude/plugins
+    - .claude/settings
+    - .claude/skills
+    - .claude/agents
+    - .claude/settings.json
+    - .claude/CLAUDE.md
+
+cleanshot:
+  bundle_id: pl.maketheweb.cleanshotx
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.getcleanshot.app-setapp.plist
+    - Library/Preferences/pl.maketheweb.cleanshotx.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+clementine:
+  bundle_id: org.clementine-player.Clementine
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/org.clementine-player.Clementine.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+clion:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/CLion2016.2
+    - Library/Application Support/CLion2016.2
+    - Library/Application Support/JetBrains/CLion2023.1
+    - Library/Application Support/JetBrains/CLion2023.2
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+clipmenu:
+  bundle_id: com.naotaka.ClipMenu
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/ClipMenu
+    - Library/Preferences/com.naotaka.ClipMenu.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+clipy:
+  bundle_id: com.clipy-app.Clipy
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.clipy-app.Clipy.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+cloudapp:
+  bundle_id: com.linebreak.CloudAppMacOSX
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.linebreak.CloudAppMacOSX.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+coda-2:
+  bundle_id: com.panic.Coda2
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Coda 2
+    - Library/Preferences/com.panic.Coda2.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+codex:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .codex/config.toml
+    - .codex/auth.json
+
+colloquy:
+  bundle_id: info.colloquy
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/info.colloquy.plist
+    - Library/Application Support/Colloquy
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+colorschemer-studio-2:
+  bundle_id: com.colorschemer.studio2
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.colorschemer.studio2.plist
+    - Library/Application Support/ColorSchemer
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+colorslurp:
+  bundle_id: com.IdeaPunch.ColorSlurp
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.IdeaPunch.ColorSlurp.plist
+    - Library/Containers/com.IdeaPunch.ColorSlurp/Data/Library/Application Support/default.realm
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+colorsync:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/ColorSync/Profiles
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+composer:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .composer/auth.json
+    - .composer/config.json
+    - .composer/composer.json
+
+concentrate:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Concentrate/Concentrate.sqlite3
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+conky:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .conkyrc
+
+consular:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .consularc
+  xdg_configuration_files:
+    - consular
+
+contexts:
+  bundle_id: com.contextsformac.Contexts
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.contextsformac.Contexts.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+controlplane:
+  bundle_id: com.dustinrue.ControlPlane
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.dustinrue.ControlPlane.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+copyq:
+  bundle_id: null
+  install_method: cask
+  xdg_configuration_files:
+    - copyq
+
+cord:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/CoRD
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+coteditor:
+  bundle_id: com.coteditor.CotEditor
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/CotEditor
+    - Library/Preferences/com.coteditor.CotEditor.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+ctags:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .ctags
+    - .ctags.d
+
+curl:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .netrc
+    - .curlrc
+
+cvim:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .cvimrc
+
+cyberduck:
+  bundle_id: ch.sudo.cyberduck
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Cyberduck
+    - Library/Containers/ch.sudo.cyberduck/Data/Library/Application Support/Cyberduck
+    - Library/Group Containers/G69SCX94XU.duck/Library/Application Support/duck
+    - Library/Preferences/ch.sudo.cyberduck.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+daisydisk:
+  bundle_id: com.daisydiskapp.DaisyDiskStandAlone
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/DaisyDisk/License.DaisyDisk
+    - Library/Preferences/com.daisydiskapp.DaisyDiskStandAlone.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+dash:
+  bundle_id: com.kapeli.dash
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Dash/library.dash
+    - Library/Application Support/Dash/License/license.dash-license
+    - Library/Preferences/com.kapeli.dash.plist
+    - Library/Preferences/com.kapeli.dashdoc.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+datagrip:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/DataGrip2017.3
+    - Library/Preferences/DataGrip2017.3
+    - Library/Application Support/DataGrip2018.1
+    - Library/Preferences/DataGrip2018.1
+    - Library/Application Support/DataGrip2018.2
+    - Library/Preferences/DataGrip2018.2
+    - Library/Application Support/DataGrip2018.3
+    - Library/Preferences/DataGrip2018.3
+    - Library/Application Support/DataGrip2019.1
+    - Library/Preferences/DataGrip2019.1
+    - Library/Preferences/DataGrip2019.2
+    - Library/Application Support/JetBrains/DataGrip2023.1
+    - Library/Application Support/JetBrains/DataGrip2023.2
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+day-o:
+  bundle_id: com.shauninman.Day-O
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.shauninman.Day-O.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+dbeaver:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/DBeaverData/workspace6/.metadata/.plugins/org.eclipse.core.runtime/.settings
+    - Library/DBeaverData/workspace6/General
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+dbvisualizer:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .dbvis
+
+deal-alert:
+  bundle_id: com.LittleFin.DealAlert
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.LittleFin.DealAlert.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+deepin-dde-dock:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - deepin/dde-dock.conf
+
+deepin-dde-file-manager:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - deepin/dde-file-manager.json
+
+deepin-terminal:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - deepin/deepin-terminal/config.conf
+
+default-folder-x:
+  bundle_id: com.stclairsoft.DefaultFolderX.favorites
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.stclairsoft.DefaultFolderX.favorites.plist
+    - Library/Preferences/com.stclairsoft.DefaultFolderX.plist
+    - Library/Preferences/com.stclairsoft.DefaultFolderX.settings.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+defaultkeybinding:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/KeyBindings/DefaultKeyBinding.dict
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+devilspie:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .devilspie
+
+devilspie2:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - devilspie2
+
+dig:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .digrc
+
+divvy:
+  bundle_id: com.mizage.direct.Divvy
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.mizage.direct.Divvy.plist
+    - Library/Preferences/com.mizage.Divvy.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+dolphin:
+  bundle_id: org.dolphin-emu.dolphin
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Dolphin
+    - Library/Preferences/org.dolphin-emu.dolphin.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+doom-emacs:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .doom.d
+  xdg_configuration_files:
+    - doom
+
+doublecmd:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - doublecmd/wfx.ini
+    - doublecmd/doublecmd.ext
+    - doublecmd/shortcuts.scf
+    - doublecmd/doublecmd.xml
+
+doxie:
+  bundle_id: com.getdoxie.doxie
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.getdoxie.doxie.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+dozer:
+  bundle_id: com.mortennn.Dozer
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.mortennn.Dozer.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+draft:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .draft/config.toml
+
+droplr:
+  bundle_id: com.droplr.droplr-mac
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.droplr.droplr-mac.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+dropzone:
+  bundle_id: com.aptonic.Dropzone3
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Dropzone 3
+    - Library/Preferences/com.aptonic.Dropzone3.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+drush:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .drush
+
+editorconfig:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .editorconfig
+
+electrum:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .electrum/config
+
+emacs:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .emacs
+    - .emacs.d
+  xdg_configuration_files:
+    - emacs
+
+enjoyable:
+  bundle_id: com.yukkurigames.Enjoyable
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.yukkurigames.Enjoyable.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+environmental-station-alpha:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/MMFApplications
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+eqmac-2:
+  bundle_id: com.bitgapp.eqMac2
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.bitgapp.eqMac2.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+eslint:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .eslintrc.js
+    - .eslintrc.yaml
+    - .eslintrc.yml
+    - .eslintrc.json
+    - .eslintrc
+    - .eslintignore
+
+espanso:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/espanso
+    - Library/Application Support/espanso
+  xdg_configuration_files:
+    - espanso
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+exercism:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .exercism
+    - .exercism.json
+  xdg_configuration_files:
+    - exercism
+
+expandrive:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/ExpanDrive
+    - Preferences/com.expandrive.ExpanDrive2.plist
+    - Preferences/com.expandrive.ExpanDrive3.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+factorio:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/factorio/config
+    - Library/Application Support/factorio/mods
+    - Library/Application Support/factorio/saves
+    - Library/Application Support/factorio/player-data.json
+    - Library/Application Support/factorio/blueprint-storage.dat
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+factory-droid:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .factory/commands
+    - .factory/droids
+    - .factory/AGENTS.md
+    - .factory/config.json
+    - .factory/settings.json
+    - .factory/auth.json
+    - .factory/mcp.json
+
+fantastical:
+  bundle_id: ['*.com.flexibits.fantastical*.mac.helper', 'com.flexibits.fantastical*.mac']
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.flexibits.fantastical.plist
+    - Library/Containers/com.flexibits.fantastical2.mac/Container.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+fasd:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .fasd
+    - .fasdrc
+
+fastlane:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .fastlane/completions
+
+fastscripts:
+  bundle_id: com.red-sweater.fastscripts
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.red-sweater.fastscripts.plist
+    - Library/Application Support/FastScripts
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+feeds:
+  bundle_id: com.feedsapp.Feeds
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.feedsapp.Feeds.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+filezilla:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .filezilla
+  xdg_configuration_files:
+    - filezilla/filezilla.xml
+    - filezilla/layout.xml
+    - filezilla/sitemanager.xml
+
+finicky:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .finicky.js
+
+fish:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - fish/config.fish
+    - fish/conf.d
+    - fish/fish_variables
+    - fish/functions
+    - fish/completions
+
+fisher:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - fish/fish_plugins
+
+flake8:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .flake8
+  xdg_configuration_files:
+    - flake8
+
+flameshot:
+  bundle_id: org.flameshot.flameshot
+  install_method: cask
+  xdg_configuration_files:
+    - flameshot/flameshot.ini
+
+flexget:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .flexget/config.yml
+  xdg_configuration_files:
+    - flexget/config.yml
+
+flux:
+  bundle_id: org.herf.Flux
+  install_method: formula
+  configuration_files:
+    - Library/Preferences/org.herf.Flux.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+focus:
+  bundle_id: BradJasper.focus
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Focus/default.cfg
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+fontconfig:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - fontconfig
+
+fontexplorer-x:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Linotype/FontExplorer X
+    - FontExplorer X
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+forge:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - Library/Application Support/Forge
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+fork:
+  bundle_id: com.DanPristupov.Fork
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/com.DanPristupov.Fork/custom-commands.json
+    - Library/Preferences/com.DanPristupov.Fork.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+forklift:
+  bundle_id: ['com.binarynights.ForkLift-4', 'com.binarynights.ForkLiftMini']
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.binarynights.ForkLift2.plist
+    - Library/Preferences/com.binarynights.ForkLift-3.plist
+    - Library/Application Support/ForkLift/Favorites/Favorites.json
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+franz:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Franz/settings
+  xdg_configuration_files:
+    - Franz/settings
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+gasmask:
+  bundle_id: ee.clockwise.gmask
+  install_method: dmg
+  configuration_files:
+    - Library/Gas Mask
+    - Library/Preferences/ee.clockwise.gmask.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+gdb:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .gdbinit
+
+gearplayer:
+  bundle_id: com.treasurebox.gear
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.treasurebox.gear.plist
+    - Library/Preferences/com.treasurebox.magickeys.plist
+    - Library/Application Support/Gear Player/paddata.padl
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+geektool:
+  bundle_id: org.tynsoe.GeekTool
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/org.tynsoe.GeekTool.plist
+    - Library/Preferences/org.tynsoe.geeklet.file.plist
+    - Library/Preferences/org.tynsoe.geeklet.image.plist
+    - Library/Preferences/org.tynsoe.geeklet.shell.plist
+    - Library/Preferences/org.tynsoe.geeklet.web.plist
+    - Library/Preferences/org.tynsoe.geektool3.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+ghci:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .ghci
+
+ghidra:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .ghidra
+
+ghostty:
+  bundle_id: null
+  install_method: cask
+  xdg_configuration_files:
+    - ghostty/config
+
+ghostwriter:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - ghostwriter
+
+gimp:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .gimp/colorrc
+    - .gimp/contextrc
+    - .gimp/controllerrc
+    - .gimp/devicerc
+    - .gimp/dockrc
+    - .gimp/gimprc
+    - .gimp/gtkrc
+    - .gimp/menurc
+    - .gimp/parasiterc
+    - .gimp/pluginrc
+    - .gimp/profilerc
+    - .gimp/sessionrc
+    - .gimp/templaterc
+    - .gimp/themerc
+    - .gimp/toolrc
+    - .gimp/unitrc
+    - Library/Application Support/GIMP/2.8/colorrc
+    - Library/Application Support/GIMP/2.8/contextrc
+    - Library/Application Support/GIMP/2.8/controllerrc
+    - Library/Application Support/GIMP/2.8/devicerc
+    - Library/Application Support/GIMP/2.8/dockrc
+    - Library/Application Support/GIMP/2.8/gimprc
+    - Library/Application Support/GIMP/2.8/gtkrc
+    - Library/Application Support/GIMP/2.8/menurc
+    - Library/Application Support/GIMP/2.8/parasiterc
+    - Library/Application Support/GIMP/2.8/pluginrc
+    - Library/Application Support/GIMP/2.8/profilerc
+    - Library/Application Support/GIMP/2.8/sessionrc
+    - Library/Application Support/GIMP/2.8/templaterc
+    - Library/Application Support/GIMP/2.8/themerc
+    - Library/Application Support/GIMP/2.8/toolrc
+    - Library/Application Support/GIMP/2.8/unitrc
+    - Library/Application Support/GIMP/2.10/colorrc
+    - Library/Application Support/GIMP/2.10/contextrc
+    - Library/Application Support/GIMP/2.10/controllerrc
+    - Library/Application Support/GIMP/2.10/devicerc
+    - Library/Application Support/GIMP/2.10/dockrc
+    - Library/Application Support/GIMP/2.10/gimprc
+    - Library/Application Support/GIMP/2.10/gtkrc
+    - Library/Application Support/GIMP/2.10/menurc
+    - Library/Application Support/GIMP/2.10/parasiterc
+    - Library/Application Support/GIMP/2.10/pluginrc
+    - Library/Application Support/GIMP/2.10/profilerc
+    - Library/Application Support/GIMP/2.10/sessionrc
+    - Library/Application Support/GIMP/2.10/templaterc
+    - Library/Application Support/GIMP/2.10/themerc
+    - Library/Application Support/GIMP/2.10/toolrc
+    - Library/Application Support/GIMP/2.10/unitrc
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+git-hooks:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .git_hooks
+
+gitbox:
+  bundle_id: com.oleganza.gitbox
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.oleganza.gitbox.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+gitfox:
+  bundle_id: com.bytieful.Gitfox
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.bytieful.Gitfox.plist
+    - Library/Preferences/com.bytieful.Gitfox-retail.plist
+    - Library/Preferences/com.bytieful.Gitfox-setapp.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+github-cli:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - gh/config.yml
+
+gitkraken:
+  bundle_id: com.axosoft.gitkraken
+  install_method: cask
+  configuration_files:
+    - .gitkraken
+    - Library/Preferences/com.axosoft.gitkraken.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+gitup:
+  bundle_id: co.gitup.mac
+  install_method: formula
+  configuration_files:
+    - Library/Preferences/co.gitup.mac.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+gmail-notifr:
+  bundle_id: com.ashchan.GmailNotifr
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.ashchan.GmailNotifr.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+gmailctl:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .gmailctl/config.jsonnet
+    - .gmailctl/credentials.json
+    - .gmailctl/gmailctl.libsonnet
+
+gmvault:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .gmvault/gmvault_defaults.conf
+
+gnu-stow:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .stowrc
+    - .stow-global-ignore
+
+gnupg:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .gnupg/gpg-agent.conf
+    - .gnupg/gpg.conf
+    - .gnupg/trustdb.gpg
+
+go2shell:
+  bundle_id: com.zipzapmac.Go2Shell
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.zipzapmac.Go2Shell.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+goku:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - karabiner.edn
+
+goland:
+  bundle_id: com.jetbrains.gogland-EAP
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Gogland1.0
+    - Library/Application Support/GoLand2017.3
+    - Library/Application Support/GoLand2018.1
+    - Library/Application Support/GoLand2018.2
+    - Library/Application Support/GoLand2018.3
+    - Library/Application Support/GoLand2019.2
+    - Library/Preferences/com.jetbrains.gogland-EAP.plist
+    - Library/Preferences/Gogland1.0
+    - Library/Preferences/GoLand2017.3
+    - Library/Preferences/GoLand2018.1
+    - Library/Preferences/GoLand2018.2
+    - Library/Preferences/GoLand2018.3
+    - Library/Preferences/GoLand2019.2
+    - Library/Application Support/JetBrains/GoLand2023.1
+    - Library/Application Support/JetBrains/GoLand2023.2
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+goldendict:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .goldendict/config
+
+goodsync:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .goodsync
+
+goshare:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - dictget/goshare
+
+gradle:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .gradle/gradle.properties
+    - .gradle/init.gradle
+    - .gradle/init.d
+
+grandtotal-3:
+  bundle_id: com.mediaatelier.GrandTotal3
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/GrandTotal/AddressBook.plist
+    - Library/Preferences/com.mediaatelier.GrandTotal3.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+grsync:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .grsync/grsync.ini
+
+gstm:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .gSTM
+
+hammerspoon:
+  bundle_id: org.hammerspoon.Hammerspoon
+  install_method: cask
+  configuration_files:
+    - .hammerspoon
+
+handbrake:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - Library/Containers/fr.handbrake.HandBrake/Data/Library/Application Support/HandBrake/UserPresets.json
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+hands-off:
+  bundle_id: com.metakine.handsoff
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.metakine.handsoff.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+hazel:
+  bundle_id: 86Z3GCJ4MF.com.noodlesoft.HazelHelper
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Hazel
+    - Library/Preferences/com.noodlesoft.Hazel.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+hero-lab:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Hero Lab/customoutput
+    - Library/Application Support/Hero Lab/data
+    - Library/Application Support/Hero Lab/docs
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+heroku:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .heroku/accounts
+    - .heroku/plugins
+
+hexchat:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - hexchat
+
+hexels:
+  bundle_id: com.hex-ray.hexels
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.hex-ray.hexels.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+hocus-focus:
+  bundle_id: com.uglyapps.HocusFocus
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.uglyapps.HocusFocus.plist
+    - Library/Application Support/com.uglyapps.HocusFocus/HocusFocus.db
+    - Library/Application Support/com.uglyapps.HocusFocus/HocusFocus.db-shm
+    - Library/Application Support/com.uglyapps.HocusFocus/HocusFocus.db-wal
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+homebrew:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .Brewfile
+    - Brewfile
+
+homebridge:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .homebridge
+
+houdini:
+  bundle_id: com.uglyapps.Houdini
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.uglyapps.Houdini.plist
+    - Library/Application Support/Houdini
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+hstr:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .hstr_favorites
+    - .hstr_blacklist
+
+htop:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .htoprc
+  xdg_configuration_files:
+    - htop/htoprc
+
+httpie:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .httpie/config.json
+
+hub:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - hub
+
+hyper:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .hyper.js
+
+hyperdock:
+  bundle_id: de.bahoom.HyperDock
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/HyperDock
+    - Library/Preferences/de.bahoom.HyperDock.plist
+    - Library/Preferences/de.bahoom.HyperDock.prefpane.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+hyperswitch:
+  bundle_id: com.bahoom.HyperSwitch
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.bahoom.HyperSwitch.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+i2cssh:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .i2csshrc
+
+i3:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .i3/config
+    - .i3status.conf
+  xdg_configuration_files:
+    - i3/config
+
+idapro:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .idapro
+
+ideavim:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .ideavimrc
+
+iina:
+  bundle_id: com.colliderli.iina
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/com.colliderli.iina/input_conf
+    - Library/Preferences/com.colliderli.iina.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+illustrator:
+  bundle_id: com.adobe.illustrator
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Adobe/Adobe Illustrator 17
+    - Library/Application Support/Adobe/Adobe Illustrator 18
+    - Library/Application Support/Adobe/Adobe Illustrator 19
+    - Library/Application Support/Adobe/Adobe Illustrator 20
+    - Library/Application Support/Adobe/Adobe Illustrator 23/en_US/Adobe SVG Filters.svg
+    - Library/Application Support/Adobe/Adobe Illustrator 23/en_US/Swatches
+    - Library/Application Support/Adobe/Adobe Illustrator 24/en_US/Adobe SVG Filters.svg
+    - Library/Application Support/Adobe/Adobe Illustrator 24/en_US/Swatches
+    - Library/Application Support/Adobe/OOBE
+    - Library/Preferences/Adobe Illustrator 17 Settings
+    - Library/Preferences/Adobe Illustrator 18 Settings
+    - Library/Preferences/Adobe Illustrator 19 Settings
+    - Library/Preferences/Adobe Illustrator 20 Settings
+    - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Adobe Illustrator Prefs
+    - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Last Used Artboard Export Settings
+    - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Last Used Asset Export Settings
+    - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Modified Workspaces
+    - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Perspective grid Presets
+    - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Print Presets
+    - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Tools/Tools Panel Presets
+    - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Transparency flattener presets
+    - Library/Preferences/Adobe Illustrator 23 Settings/en_US/VariableWidthProfiles
+    - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Vectorizing Presets
+    - Library/Preferences/Adobe Illustrator 23 Settings/en_US/Workspaces
+    - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Adobe Illustrator Prefs
+    - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Last Used Artboard Export Settings
+    - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Last Used Asset Export Settings
+    - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Modified Workspaces
+    - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Perspective grid Presets
+    - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Print Presets
+    - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Tools/Tools Panel Presets
+    - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Transparency flattener presets
+    - Library/Preferences/Adobe Illustrator 24 Settings/en_US/VariableWidthProfiles
+    - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Vectorizing Presets
+    - Library/Preferences/Adobe Illustrator 24 Settings/en_US/Workspaces
+    - Library/Preferences/com.adobe.illustrator.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+inkscape:
+  bundle_id: null
+  install_method: cask
+  xdg_configuration_files:
+    - inkscape/preferences.xml
+
+insomnia:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Insomnia
+  xdg_configuration_files:
+    - Insomnia
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+intellijidea:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - .IntelliJIdea12/config
+    - .IntelliJIdea13/config
+    - .IntelliJIdea14/config
+    - .IntelliJIdea15/config
+    - IdeaIC2018.2/config
+    - IdeaIC2018.3/config
+    - IdeaIC2019.1/config
+    - IdeaIC2019.2/config
+    - IdeaIC2019.3/config
+    - IntelliJIdea2016.1/config
+    - IntelliJIdea2016.2/config
+    - IntelliJIdea2016.3/config
+    - IntelliJIdea2017.1/config
+    - IntelliJIdea2017.2/config
+    - IntelliJIdea2017.3/config
+    - IntelliJIdea2018.1/config
+    - IntelliJIdea2018.2/config
+    - IntelliJIdea2018.3/config
+    - IntelliJIdea2019.1/config
+    - IntelliJIdea2019.2/config
+    - IntelliJIdea2019.3/config
+    - Library/Application Support/IdeaIC2016.1
+    - Library/Application Support/IdeaIC2017.1
+    - Library/Application Support/IdeaIC2017.2
+    - Library/Application Support/IdeaIC2017.3
+    - Library/Application Support/IdeaIC2018.2
+    - Library/Application Support/IdeaIC2018.3
+    - Library/Application Support/IdeaIC2019.1
+    - Library/Application Support/IntelliJIdea12
+    - Library/Application Support/IntelliJIdea13
+    - Library/Application Support/IntelliJIdea14
+    - Library/Application Support/IntelliJIdea15
+    - Library/Application Support/IntelliJIdea2016.1
+    - Library/Application Support/IntelliJIdea2016.2
+    - Library/Application Support/IntelliJIdea2016.3
+    - Library/Application Support/IntelliJIdea2017.1
+    - Library/Application Support/IntelliJIdea2017.2
+    - Library/Application Support/IntelliJIdea2017.3
+    - Library/Application Support/IntelliJIdea2018.1
+    - Library/Application Support/IntelliJIdea2018.2
+    - Library/Application Support/IntelliJIdea2018.3
+    - Library/Application Support/IntelliJIdea2019.1
+    - Library/Application Support/IntelliJIdea2019.2
+    - Library/Application Support/IntelliJIdea2019.3
+    - Library/Application Support/JetBrains/IntelliJIdea2020.1
+    - Library/Application Support/JetBrains/IntelliJIdea2020.2
+    - Library/Application Support/JetBrains/IntelliJIdea2020.3
+    - Library/Application Support/JetBrains/IntelliJIdea2021.1
+    - Library/Application Support/JetBrains/IntelliJIdea2022.1
+    - Library/Application Support/JetBrains/IntelliJIdea2022.2
+    - Library/Application Support/JetBrains/IntelliJIdea2023.1
+    - Library/Application Support/JetBrains/IntelliJIdea2023.2
+    - Library/Preferences/IdeaIC2016.1
+    - Library/Preferences/IdeaIC2016.2
+    - Library/Preferences/IdeaIC2016.3
+    - Library/Preferences/IdeaIC2017.1
+    - Library/Preferences/IdeaIC2017.2
+    - Library/Preferences/IdeaIC2017.3
+    - Library/Preferences/IdeaIC2018.2
+    - Library/Preferences/IdeaIC2018.3
+    - Library/Preferences/IdeaIC2019.1
+    - Library/Preferences/IntelliJIdea12
+    - Library/Preferences/IntelliJIdea13
+    - Library/Preferences/IntelliJIdea14
+    - Library/Preferences/IntelliJIdea15
+    - Library/Preferences/IntelliJIdea2016.1
+    - Library/Preferences/IntelliJIdea2016.2
+    - Library/Preferences/IntelliJIdea2016.3
+    - Library/Preferences/IntelliJIdea2017.1
+    - Library/Preferences/IntelliJIdea2017.2
+    - Library/Preferences/IntelliJIdea2017.3
+    - Library/Preferences/IntelliJIdea2018.1
+    - Library/Preferences/IntelliJIdea2018.2
+    - Library/Preferences/IntelliJIdea2018.3
+    - Library/Preferences/IntelliJIdea2019.1
+    - Library/Preferences/IntelliJIdea2019.2
+    - Library/Preferences/IntelliJIdea2019.3
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+ipython:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .ipython
+
+irssi:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .irssi
+
+istat-menus:
+  bundle_id: com.bjango.istatmenus.menubar.7
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.bjango.istatmenus.menubar.7.plist
+    - Library/Preferences/com.bjango.istatmenus.plist
+    - Library/Preferences/com.bjango.istatmenus.status.plist
+    - Library/Preferences/com.bjango.istatmenus5.extras.plist
+    - Library/Preferences/com.bjango.istatmenus6.extras.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+itermocil:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .itermocil
+
+itsycal:
+  bundle_id: com.mowglii.ItsycalApp
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.mowglii.ItsycalApp.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+itunes-scripts:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/iTunes/Scripts
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+jankyborders:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - borders/bordersrc
+
+janus:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .janus
+    - .vimrc.before
+    - .vimrc.after
+
+jitouch:
+  bundle_id: com.jitouch.Jitouch
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.jitouch.Jitouch.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+joplin:
+  bundle_id: null
+  install_method: cask
+  xdg_configuration_files:
+    - joplin-desktop/userchrome.css
+    - joplin-desktop/userstyle.css
+
+jrnl:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .jrnl_config
+  xdg_configuration_files:
+    - jrnl/jrnl.yaml
+
+jsbeautifier:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .jsbeautifyrc
+
+jshint:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .jshintrc
+
+julia:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .juliarc.jl
+    - .julia/config/startup.jl
+
+jumpcut:
+  bundle_id: net.sf.Jumpcut
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Jumpcut
+    - Library/Preferences/net.sf.Jumpcut.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+jupyter:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .jupyter
+
+k9s:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - k9s/config.yml
+    - k9s/skin.yml
+
+kaggle:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .kaggle/kaggle.json
+
+kaleidoscope:
+  bundle_id: app.kaleidoscope.v6
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.blackpixel.kaleidoscope.plist
+    - Library/Application Support/Kaleidoscope
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+karabiner:
+  bundle_id: org.pqrs.Karabiner
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/org.pqrs.Karabiner.plist
+    - Library/Preferences/org.pqrs.Karabiner-AXNotifier.plist
+    - Library/Preferences/org.pqrs.Karabiner.multitouchextension.plist
+    - Library/Application Support/Karabiner
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+kdenlive:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - kdenlive
+  xdg_configuration_files:
+    - kdenliverc
+
+keepassx:
+  bundle_id: org.keepassx.keepassx
+  install_method: cask
+  configuration_files:
+    - .keepassx
+    - Library/Preferences/org.keepassx.keepassx.plist
+    - Library/Application Support/keepassx/keepassx2.ini
+  xdg_configuration_files:
+    - keepassx/keepassx2.ini
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+keepassxc:
+  bundle_id: org.keepassxc.keepassxc
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/org.keepassxc.keepassxc.plist
+    - Library/Application Support/keepassxc/keepassxc.ini
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+keepingyouawake:
+  bundle_id: info.marcel-dierkes.KeepingYouAwake
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/info.marcel-dierkes.KeepingYouAwake.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+keka:
+  bundle_id: com.aone.keka
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.aone.keka.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+keybase:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .keybase/config.json
+
+keyboard-maestro:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Keyboard Maestro
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+keymo:
+  bundle_id: com.manytricks.Keymo
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.manytricks.Keymo.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+keyremap4macbook:
+  bundle_id: org.pqrs.KeyRemap4MacBook
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/org.pqrs.KeyRemap4MacBook.plist
+    - Library/Preferences/org.pqrs.KeyRemap4MacBook.multitouchextension.plist
+    - Library/Application Support/KeyRemap4MacBook/private.xml
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+khd:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .khdrc
+
+kiro:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Kiro/User/snippets
+    - Library/Application Support/Kiro/User/keybindings.json
+    - Library/Application Support/Kiro/User/settings.json
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+kitty:
+  bundle_id: null
+  install_method: cask
+  xdg_configuration_files:
+    - kitty/kitty.conf
+
+krew:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .krew
+
+kubectl:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .kube/config
+
+kwm:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .kwm
+
+latexit:
+  bundle_id: fr.chachatelier.pierre.LaTeXiT
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/fr.chachatelier.pierre.LaTeXiT.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+launchbar:
+  bundle_id: at.obdev.LaunchBar
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/at.obdev.LaunchBar.plist
+    - Library/Application Support/LaunchBar/Actions
+    - Library/Application Support/LaunchBar/Snippets
+    - Library/Application Support/LaunchBar/Configuration.plist
+    - Library/Application Support/LaunchBar/CustomShortcuts.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+lazydocker:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - Library/Application Support/jesseduffield/lazydocker/config.yml
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+lazygit:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - Library/Application Support/jesseduffield/lazygit/config.yml
+    - Library/Application Support/lazygit/config.yml
+  xdg_configuration_files:
+    - lazygit/config.yml
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+ledger:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .ledgerrc
+
+leiningen:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .lein
+
+lf:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - lf/lfrc
+
+libreoffice:
+  bundle_id: null
+  install_method: cask
+  xdg_configuration_files:
+    - libreoffice
+
+liftoff:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .liftoffrc
+
+light-table:
+  bundle_id: com.kodowa.LightTable
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/LightTable/plugins
+    - Library/Application Support/LightTable/settings
+    - Library/Application Support/LightTable/User
+    - Library/Preferences/com.kodowa.LightTable.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+lightpaper:
+  bundle_id: com.42squares.LightPaper
+  install_method: dmg
+  configuration_files:
+    - .lightpaper
+    - Library/Application Support/LightPaper/customCSS.css
+    - Library/Preferences/com.42squares.LightPaper.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+lightroom:
+  bundle_id: com.adobe.Lightroom4
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Adobe/Lightroom
+    - Library/Preferences/com.adobe.Lightroom4.plist
+    - Library/Preferences/com.adobe.Lightroom5.plist
+    - Library/Preferences/com.adobe.Lightroom6.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+lightroom-classic:
+  bundle_id: com.adobe.LightroomClassicCC7
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.adobe.LightroomClassicCC7.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+limechat:
+  bundle_id: net.limechat.LimeChat-AppStore
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/net.limechat.LimeChat-AppStore.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+liquidprompt:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .liquidpromptrc
+  xdg_configuration_files:
+    - liquidpromptrc
+
+littlesnitch:
+  bundle_id: at.obdev.LittleSnitchNetworkMonitor
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/at.obdev.LittleSnitchNetworkMonitor.plist
+    - Library/Preferences/at.obdev.littlesnitch.networkmonitor.plist
+    - Library/Application Support/Little Snitch/rules.usr.xpl
+    - Library/Application Support/Little Snitch/configuration.xpl
+    - Library/Application Support/Little Snitch/configuration.user.xpl
+    - Library/Application Support/Little Snitch/configuration4.user.xpl
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+livestreamer:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .livestreamerrc
+  xdg_configuration_files:
+    - livestreamer/config
+    - livestreamer/plugins
+
+logitech-options:
+  bundle_id: ['com.logitech.Logi-Options', 'com.logitech.manager.daemon', 'com.logitech.manager.uninstaller']
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.logitech.manager.setting.ffff.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+logseq:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .logseq
+
+loopback:
+  bundle_id: ['com.rogueamoeba.Loopback', 'com.rogueamoeba.loopbackd']
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.rogueamoeba.Loopback.plist
+    - Library/Application Support/Loopback/Devices.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+luftrausers:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .LUFTRAUSERS
+
+lunarvim:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - lvim/config.lua
+
+macdive2:
+  bundle_id: com.mintsoftware.MacDive2
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/MacDive
+    - Library/Preferences/com.mintsoftware.MacDive2.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+macdown:
+  bundle_id: com.uranusjr.macdown
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.uranusjr.macdown.plist
+    - Library/Application Support/MacDown/Styles
+    - Library/Application Support/MacDown/Themes
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+mackup:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .mackup.cfg
+    - .mackup
+
+macosx:
+  bundle_id: com.apple.symbolichotkeys
+  install_method: dmg
+  configuration_files:
+    - .MacOSX
+    - Library/KeyBindings/DefaultKeyBinding.dict
+    - Library/PDF Services
+    - Library/Preferences/com.apple.symbolichotkeys.plist
+    - Library/Preferences/.GlobalPreferences.plist
+    - Library/Scripts
+    - Library/Speech/Speakable Items
+    - Library/Workflows
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+macvim:
+  bundle_id: org.vim.MacVim.LSSharedFileList
+  install_method: formula
+  configuration_files:
+    - Library/Preferences/org.vim.MacVim.LSSharedFileList.plist
+    - Library/Preferences/org.vim.MacVim.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+magic-launch:
+  bundle_id: com.metakine.magic-launch.agent
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.metakine.magic-launch.agent.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+magicprefs:
+  bundle_id: com.vladalexa.MagicPrefs.MagicPrefsPlugins
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.vladalexa.MagicPrefs.MagicPrefsPlugins.plist
+    - Library/Preferences/com.vladalexa.MagicPrefs.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+magnet:
+  bundle_id: com.crowdcafe.windowmagnet
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.crowdcafe.windowmagnet.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+maid:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .maid
+
+mail:
+  bundle_id: com.apple.mail
+  install_method: system
+  configuration_files:
+    - Library/Preferences/com.apple.mail.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+mailmate:
+  bundle_id: com.freron.MailMate
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.freron.MailMate.plist
+    - Library/Application Support/Mailmate/com.freron.MailMate.pid
+    - Library/Application Support/Mailmate/Identities.plist
+    - Library/Application Support/Mailmate/Mailboxes.plist
+    - Library/Application Support/Mailmate/Signatures.plist
+    - Library/Application Support/Mailmate/Sources.plist
+    - Library/Application Support/Mailmate/Submission.plist
+    - Library/Application Support/Mailmate/Tags.plist
+    - Library/Application Support/Mailmate/Resources/KeyBindings
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+mailplane:
+  bundle_id: com.mailplaneapp.Mailplane
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.mailplaneapp.Mailplane.plist
+    - Library/Preferences/com.mailplaneapp.Mailplane3.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+mako:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - mako/config
+
+marked2:
+  bundle_id: com.brettterpstra.marked2
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Marked 2
+    - Library/Preferences/com.brettterpstra.marked2.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+marta:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/org.yanex.marta/conf.json
+    - Library/Application Support/org.yanex.marta/favorites.json
+    - Library/Application Support/org.yanex.marta/conf.marco
+    - Library/Application Support/org.yanex.marta/favorites.marco
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+matlab:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .matlab
+
+maven:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .m2/settings-security.xml
+    - .m2/settings.xml
+    - .m2/toolchains.xml
+
+max:
+  bundle_id: org.sbooth.Max
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/org.sbooth.Max.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+mendeley:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Mendeley Desktop
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+menumeters:
+  bundle_id: com.yujitach.MenuMeters
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.ragingmenace.MenuMeters.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+mercurial:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .hgrc
+    - .hgignore_global
+
+mercurymover:
+  bundle_id: com.heliumfoot.MyWiAgent
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.heliumfoot.MyWiAgent.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+messages:
+  bundle_id: com.apple.iChat.AIM
+  install_method: system
+  configuration_files:
+    - Library/Preferences/com.apple.iChat.AIM.plist
+    - Library/Preferences/com.apple.iChat.Jabber.plist
+    - Library/Preferences/com.apple.iChat.StatusMessages.plist
+    - Library/Preferences/com.apple.iChat.Yahoo.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+micro:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - micro/colorschemes
+    - micro/syntax
+    - micro/settings.json
+    - micro/bindings.json
+
+microsoft-remote-desktop:
+  bundle_id: ['com.microsoft.autoupdate.fba', 'com.microsoft.autoupdate2', 'com.microsoft.errorreporting']
+  install_method: cask
+  configuration_files:
+    - Library/Containers/com.microsoft.rdc.macos/Data/Library/Preferences/com.microsoft.rdc.macos.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+mitmproxy:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .mitmproxy/config.yaml
+
+mkcert:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - Library/Application Support/mkcert
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+mole:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - mole/whitelist
+
+monodevelop:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/MonoDevelop-Unity-5.0/KeyBindings/Custom.mac-kb.xml
+    - Library/Preferences/MonoDevelop-Unity-5.0/MonoDevelopProperties.xml
+    - Library/MonoDevelop-Unity-5.0/Policies/Default.mdpolicy.xml
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+moom:
+  bundle_id: com.manytricks.Moom
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.manytricks.Moom.plist
+    - Library/Application Support/Many Tricks
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+mosaic:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/com.lightpillar.Mosaic/MosaicCoreData.storedata
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+mou:
+  bundle_id: com.mouapp.Mou
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.mouapp.Mou.plist
+    - Library/Preferences/com.mouapp.Mou.LSSharedFileList.plist
+    - Library/Application Support/Mou
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+mpd:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .mpd
+    - .mpdconf
+
+mplayerx:
+  bundle_id: org.niltsh.MPlayerX
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/org.niltsh.MPlayerX.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+mps-youtube:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - mps-youtube/config
+    - mps-youtube/playlist_v2
+
+mpv:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .mpv/channels.conf
+    - .mpv/config
+    - .mpv/input.conf
+  xdg_configuration_files:
+    - mpv/config
+    - mpv/mpv.conf
+    - mpv/scripts
+    - mpv/script-opts
+    - mpv/input.conf
+    - mpv/watch_later
+
+mtmr:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/MTMR/items.json
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+multitouch:
+  bundle_id: com.brassmonkery.Multitouch
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.brassmonkery.Multitouch.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+mumu:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Mumu
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+musicbrainz-picard:
+  bundle_id: null
+  install_method: cask
+  xdg_configuration_files:
+    - MusicBrainz
+
+mutespotifyads:
+  bundle_id: de.simonmeusel.MuteSpotifyAds
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/de.simonmeusel.MuteSpotifyAds.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+mycli:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .myclirc
+
+myrepos:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .mrconfig
+
+mysql:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .my.cnf
+
+mysqlworkbench:
+  bundle_id: com.oracle.mysql.workbench
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/MySQL/Workbench/connections.xml
+    - Library/Application Support/MySQL/Workbench/server_instances.xml
+    - Library/Application Support/MySQL/Workbench/wb_options.xml
+    - Library/Preferences/com.oracle.mysql.workbench.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+name-mangler:
+  bundle_id: com.manytricks.NameMangler
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Name Mangler
+    - Library/Preferences/com.manytricks.NameMangler.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+nano:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .nanorc
+
+navicat:
+  bundle_id: com.prect.Navicat
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/PremiumSoft CyberTech
+    - Library/Application Support/Navicat for MySQL
+    - Library/Application Support/Navicat Premium
+    - Library/Preferences/com.prect.Navicat.plist
+    - Library/Preferences/com.prect.NavicatPremium.plist
+    - Library/Preferences/com.prect.NavicatPremiumEssentials.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+ncmpcpp:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .ncmpcpp
+
+neofetch:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - neofetch/config.conf
+
+nethack:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .nethackrc
+
+netlify:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .netlify/config.json
+
+newsbeuter:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .newsbeuter/config
+    - .newsbeuter/urls
+
+ngrok:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .ngrok
+    - .ngrok2
+
+ni:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .nirc
+
+nomacs:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - nomacs
+
+nosqlbooster-for-mongodb:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Documents/NoSQLBooster
+
+notion-enhancer:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .notion-enhancer
+
+nova:
+  bundle_id: com.panic.Nova
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.panic.Nova.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+npm:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .npmrc
+
+npmrc:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .npmrcs
+
+nslogger:
+  bundle_id: com.florentpillet.NSLogger
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.florentpillet.NSLogger.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+nuget:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .nuget/NuGet/NuGet.Config
+
+nushell:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - Library/Application Support/nushell/env.nu
+    - Library/Application Support/nushell/config.nu
+  xdg_configuration_files:
+    - nushell/config.nu
+    - nushell/env.nu
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+nvalt:
+  bundle_id: net.elasticthreads.nv
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/net.elasticthreads.nv.plist
+    - Library/Application Support/Notational Velocity
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+nvm:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .nvm/default-packages
+
+nvpy:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .nvpy.cfg
+
+obs:
+  bundle_id: com.obsproject.obs-studio
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.obsproject.obs-studio.plist
+    - Library/Application Support/obs-studio/global.ini
+    - Library/Application Support/obs-studio/basic
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+oci:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .oci/config
+    - .oci/oci_cli_rc
+
+offlineimap:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .offlineimaprc
+
+ogdesign-eagle:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Eagle/Settings
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+oh-my-fish:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - omf
+
+oh-my-tmux:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .tmux.conf.local
+
+omnifocus:
+  bundle_id: com.omnigroup.OmniFocus4
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/OmniFocus/Plug-Ins
+    - Library/Application Support/OmniFocus/Themes
+    - Library/Preferences/com.omnigroup.OmniFocus.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+omnigraffle:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/The Omni Group/OmniGraffle
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+openbox:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - openbox/menu.xml
+    - openbox/rc.xml
+    - openbox/environment
+    - openbox/autostart
+
+opencode:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - opencode/agent
+    - opencode/command
+    - opencode/themes
+    - opencode/tool
+    - opencode/settings
+    - opencode/opencode.json
+    - opencode/opencode.jsonc
+    - opencode/config.json
+    - opencode/AGENTS.md
+
+openemu:
+  bundle_id: org.openemu.OpenEmu
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/org.openemu.OpenEmu.plist
+    - Library/Application Support/OpenEmu
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+opera:
+  bundle_id: com.operasoftware.Opera
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/com.operasoftware.Opera
+    - Library/Application Support/com.operasoftware.OperaDeveloper
+    - Library/Application Support/com.operasoftware.OperaNext
+    - Library/Preferences/com.operasoftware.Opera.plist
+    - Library/Preferences/com.operasoftware.OperaDeveloper.plist
+    - Library/Preferences/com.operasoftware.OperaNext.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+p10k:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .p10k.zsh
+
+paintbrush:
+  bundle_id: com.soggywaffles.Paintbrush
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.soggywaffles.Paintbrush.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+pandoc:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .pandoc
+
+pass:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .password-store
+
+pastebot:
+  bundle_id: com.tapbots.PastebotSync
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.tapbots.PastebotSync.plist
+    - Library/Preferences/com.tapbots.PastebotSync.prefPane.plist
+    - Library/Preferences/com.tapbots.PastebotSync.stats.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+path-finder:
+  bundle_id: com.cocoatech.PathFinder
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.cocoatech.PathFinder.plist
+    - Library/Application Support/Path Finder
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+pdfjam:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .pdfjam.conf
+
+pear:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .pearrc
+
+pentadactyl:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .pentadactyl
+    - .pentadactylrc
+
+perl:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .perltidyrc
+    - .perlcriticrc
+    - .proverc
+
+pgsql:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .pgpass
+    - .psqlrc
+
+phoenix:
+  bundle_id: ['org.khirviko.Phoenix', 'org.khirviko.Phoenix.Launcher']
+  install_method: cask
+  configuration_files:
+    - .phoenix.js
+
+phoneview:
+  bundle_id: com.ecamm.PhoneView
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.ecamm.PhoneView.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+photoshop:
+  bundle_id: com.adobe.Photoshop
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Adobe/Adobe Photoshop CC 2013/Presets
+    - Library/Application Support/Adobe/Adobe Photoshop CC 2014/Presets
+    - Library/Application Support/Adobe/Adobe Photoshop CC 2015/Presets
+    - Library/Application Support/Adobe/Adobe Photoshop CC 2015.5/Presets
+    - Library/Application Support/Adobe/Adobe Photoshop CC 2019/Presets
+    - Library/Preferences/Adobe Photoshop CC 2013 Settings
+    - Library/Preferences/Adobe Photoshop CC 2014 Settings
+    - Library/Preferences/Adobe Photoshop CC 2015 Settings
+    - Library/Preferences/Adobe Photoshop CC 2015.5 Settings
+    - Library/Preferences/Adobe Photoshop CC 2019 Settings
+    - Library/Preferences/com.adobe.Photoshop.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+phpstorm:
+  bundle_id: com.jetbrains.PhpStorm
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/JetBrains/PhpStorm2020.1
+    - Library/Application Support/JetBrains/PhpStorm2020.2
+    - Library/Application Support/JetBrains/PhpStorm2020.3
+    - Library/Application Support/JetBrains/PhpStorm2021.1
+    - Library/Application Support/JetBrains/PhpStorm2021.2
+    - Library/Application Support/JetBrains/PhpStorm2021.3
+    - Library/Application Support/JetBrains/PhpStorm2022.1
+    - Library/Application Support/JetBrains/PhpStorm2022.2
+    - Library/Application Support/JetBrains/PhpStorm2022.3
+    - Library/Application Support/JetBrains/PhpStorm2023.1
+    - Library/Application Support/JetBrains/PhpStorm2023.2
+    - Library/Application Support/JetBrains/PhpStorm2023.3
+    - Library/Application Support/JetBrains/PhpStorm2024.1
+    - Library/Application Support/PhpStorm2016.1
+    - Library/Application Support/PhpStorm2016.2
+    - Library/Application Support/PhpStorm2016.3
+    - Library/Application Support/PhpStorm2017.1
+    - Library/Application Support/PhpStorm2017.2
+    - Library/Application Support/PhpStorm2017.3
+    - Library/Application Support/PhpStorm2018.1
+    - Library/Application Support/PhpStorm2018.2
+    - Library/Application Support/PhpStorm2018.3
+    - Library/Application Support/PhpStorm2019.1
+    - Library/Application Support/PhpStorm2019.2
+    - Library/Application Support/PhpStorm2019.3
+    - Library/Application Support/PhpStorm2019.4
+    - Library/Application Support/WebIde100
+    - Library/Application Support/WebIde60
+    - Library/Application Support/WebIde70
+    - Library/Application Support/WebIde80
+    - Library/Application Support/WebIde90
+    - Library/Application Support/WebIde95
+    - Library/Preferences/com.jetbrains.PhpStorm.plist
+    - Library/Preferences/PhpStorm2016.1
+    - Library/Preferences/PhpStorm2016.2
+    - Library/Preferences/PhpStorm2016.3
+    - Library/Preferences/PhpStorm2017.1
+    - Library/Preferences/PhpStorm2017.2
+    - Library/Preferences/PhpStorm2017.3
+    - Library/Preferences/PhpStorm2018.1
+    - Library/Preferences/PhpStorm2018.2
+    - Library/Preferences/PhpStorm2018.3
+    - Library/Preferences/PhpStorm2019.1
+    - Library/Preferences/PhpStorm2019.2
+    - Library/Preferences/PhpStorm2019.3
+    - Library/Preferences/PhpStorm2019.4
+    - Library/Preferences/WebIde100
+    - Library/Preferences/WebIde60
+    - Library/Preferences/WebIde70
+    - Library/Preferences/WebIde80
+    - Library/Preferences/WebIde90
+    - Library/Preferences/WebIde95
+    - .PhpStorm2016.1/config
+    - .PhpStorm2016.2/config
+    - .PhpStorm2016.3/config
+    - .PhpStorm2017.1/config
+    - .PhpStorm2017.2/config
+    - .PhpStorm2017.3/config
+    - .PhpStorm2018.1/config
+    - .PhpStorm2018.2/config
+    - .PhpStorm2018.3/config
+    - .PhpStorm2019.1/config
+    - .PhpStorm2019.2/config
+    - .PhpStorm2019.3/config
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+picgo:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/picgo/data.json
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+pidgin:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .purple
+
+pip:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/pip/pip.conf
+    - .pip/pip.conf
+  xdg_configuration_files:
+    - pip/pip.conf
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+pixelsnap:
+  bundle_id: pl.maketheweb.pixelsnap2
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.getpixelsnap.app.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+pixelsnap2:
+  bundle_id: pl.maketheweb.pixelsnap2
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/pl.maketheweb.pixelsnap2.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+planner:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .var/app/com.github.alainm23.planner/config
+    - .var/app/com.github.alainm23.planner/data
+
+plover:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Plover
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+pnpm:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .pnpm/global_pnpmfile.js
+    - .pnpm-store/2/store.json
+
+pock:
+  bundle_id: com.pigigaldi.pock
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.pigigaldi.pock.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+poedit:
+  bundle_id: net.poedit.Poedit
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/net.poedit.Poedit.cfg
+    - Library/Preferences/net.poedit.Poedit.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+poetry:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - Library/Application Support/pypoetry/config.toml
+    - Library/Preferences/pypoetry/config.toml
+  xdg_configuration_files:
+    - pypoetry/config.toml
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+pokerstars:
+  bundle_id: ['com.pokerstars.PokerStars', 'com.pokerstars.PokerStarsBrowse']
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/PokerStars
+    - Library/Preferences/com.pokerstars.user.ini
+    - Library/Preferences/com.pokerstars.PokerStars.plist
+    - Library/Application Support/PokerStarsEU
+    - Library/Preferences/com.pokerstars.eu.user.ini
+    - Library/Preferences/com.pokerstars.PokerStarsEU.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+polybar:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .polybar/config
+    - .polybar/launch.sh
+  xdg_configuration_files:
+    - polybar/config
+    - polybar/launch.sh
+    - polybar/scripts
+
+popclip:
+  bundle_id: com.pilotmoon.popclip
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.pilotmoon.popclip.plist
+    - Library/Application Support/PopClip/Extensions
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+popcorn-time:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Popcorn-Time/data/bookmarks.db
+    - Library/Application Support/Popcorn-Time/data/settings.db
+    - Library/Application Support/Popcorn-Time/data/watched.db
+    - Library/Application Support/Popcorn-Time/data/movies.db
+    - Library/Application Support/Popcorn-Time/data/shows.db
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+postico:
+  bundle_id: at.eggerapps.Postico
+  install_method: cask
+  configuration_files:
+    - Library/Containers/at.eggerapps.Postico/Data/Library/Application Support/Postico
+    - Library/Containers/at.eggerapps.Postico/Data/Library/Preferences/at.eggerapps.Postico.plist
+    - Library/Preferences/at.eggerapps.Postico.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+pow:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .powconfig
+    - .powenv
+    - .powrc
+
+powerline:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - powerline/config.json
+    - powerline/colors.json
+    - powerline/themes
+    - powerline/colorschemes
+
+prezto:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .zpreztorc
+
+processing:
+  bundle_id: org.processing.app
+  install_method: cask
+  configuration_files:
+    - Library/Processing/preferences.txt
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+proselint:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .proselintrc
+  xdg_configuration_files:
+    - proselint/config
+
+proxychains:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .proxychains
+
+proxyman:
+  bundle_id: com.proxyman.NSProxy
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/com.proxyman.NSProxy
+    - Library/Preferences/com.proxyman.NSProxy.plist
+    - Library/Application Support/com.proxyman.NSProxy-setapp
+    - Library/Preferences/com.proxyman.NSProxy-setapp.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+prusa-slicer:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - PrusaSlicer
+
+psysh:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - psysh/config.php
+
+punto-switcher:
+  bundle_id: ru.yandex.punto
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/ru.yandex.punto.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+pycharm:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .PyCharm2016.1/config
+    - .PyCharm2016.2/config
+    - .PyCharm2016.3/config
+    - .PyCharm2017.1/config
+    - .PyCharm2017.2/config
+    - .PyCharm2017.3/config
+    - .PyCharm40/config
+    - .PyCharm50/config
+    - .PyCharmCE2016.1/config
+    - .PyCharmCE2016.2/config
+    - .PyCharmCE2016.3/config
+    - .PyCharmCE2017.1/config
+    - .PyCharmCE2017.2/config
+    - .PyCharmCE2017.3/config
+    - .PyCharmCE2019.3/config
+    - Library/Application Support/JetBrains/PyCharm2020.1
+    - Library/Application Support/JetBrains/PyCharm2020.2
+    - Library/Application Support/JetBrains/PyCharm2020.3
+    - Library/Application Support/JetBrains/PyCharm2020.4
+    - Library/Application Support/JetBrains/PyCharm2023.1
+    - Library/Application Support/JetBrains/PyCharm2023.2
+    - Library/Application Support/JetBrains/PyCharmCE2020.1
+    - Library/Application Support/PyCharm
+    - Library/Application Support/PyCharm2016.1
+    - Library/Application Support/PyCharm2016.2
+    - Library/Application Support/PyCharm2016.3
+    - Library/Application Support/PyCharm2017.1
+    - Library/Application Support/PyCharm2017.2
+    - Library/Application Support/PyCharm2017.3
+    - Library/Application Support/PyCharm2019.2
+    - Library/Application Support/PyCharm2019.3
+    - Library/Application Support/PyCharm40
+    - Library/Application Support/PyCharm50
+    - Library/Application Support/PyCharmCE2016.1
+    - Library/Application Support/PyCharmCE2016.2
+    - Library/Application Support/PyCharmCE2016.3
+    - Library/Application Support/PyCharmCE2017.1
+    - Library/Application Support/PyCharmCE2017.2
+    - Library/Application Support/PyCharmCE2017.3
+    - Library/Preferences/PyCharm2016.1
+    - Library/Preferences/PyCharm2016.2
+    - Library/Preferences/PyCharm2016.3
+    - Library/Preferences/PyCharm2017.1
+    - Library/Preferences/PyCharm2017.2
+    - Library/Preferences/PyCharm2017.3
+    - Library/Preferences/PyCharm2019.2
+    - Library/Preferences/PyCharm2019.3
+    - Library/Preferences/PyCharm40
+    - Library/Preferences/PyCharm50
+    - Library/Preferences/PyCharmCE2016.1
+    - Library/Preferences/PyCharmCE2016.2
+    - Library/Preferences/PyCharmCE2016.3
+    - Library/Preferences/PyCharmCE2017.1
+    - Library/Preferences/PyCharmCE2017.2
+    - Library/Preferences/PyCharmCE2017.3
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+pypi:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .pypirc
+
+pyradio:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .pyradio/stations.csv
+
+querious:
+  bundle_id: com.araeliumgroup.querious
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.araeliumgroup.querious.plist
+    - Library/Application Support/Querious
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+quicklook:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Quicklook
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+quicksilver:
+  bundle_id: com.blacktree.Quicksilver
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.blacktree.Quicksilver.plist
+    - Library/Application Support/Quicksilver
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+quitter:
+  bundle_id: com.marcoarment.quitter
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.marcoarment.quitter.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+qutebrowser:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .qutebrowser/config.py
+  xdg_configuration_files:
+    - qutebrowser/config.py
+    - qutebrowser/qutebrowser.conf
+
+qv2ray:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/qv2ray/Qv2ray.conf
+    - Library/Preferences/qv2ray/plugin_settings
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+r:
+  bundle_id: org.R-project.R
+  install_method: formula
+  configuration_files:
+    - .R
+    - .Rhistory
+    - .Rprofile
+    - .Rprofile.d
+    - .Renviron
+    - .Renviron.d
+    - Library/Preferences/org.R-project.R.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+rails:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .railsrc
+
+ranger:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - ranger/commands.py
+    - ranger/rc.conf
+    - ranger/rifle.conf
+    - ranger/scope.sh
+    - ranger/plugins
+
+rbenv:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .rbenv/default_gems
+
+rclone:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - rclone
+
+rectangle:
+  bundle_id: com.knollsoft.Rectangle
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.knollsoft.Rectangle.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+redshift:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - redshift.conf
+
+redshift-scheduler:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - redshift-scheduler/rules.conf
+
+remote-desktop-manager:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/com.devolutions.remotedesktopmanager.free/Connections.db
+    - Library/Application Support/com.devolutions.remotedesktopmanager/Connections.db
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+rime:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Rime/default.custom.yaml
+    - Library/Rime/default.yaml
+    - Library/Rime/installation.yaml
+    - Library/Rime/squirrel.custom.yaml
+    - Library/Rime/squirrel.yaml
+    - Library/Rime/symbols.yaml
+    - Library/Rime/user.yaml
+  xdg_configuration_files:
+    - ibus/rimedefault.custom.yaml
+    - ibus/rimedefault.yaml
+    - ibus/rimeinstallation.yaml
+    - ibus/rimesquirrel.custom.yaml
+    - ibus/rimesquirrel.yaml
+    - ibus/rimesymbols.yaml
+    - ibus/rimeuser.yaml
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+ripgrep:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .ripgreprc
+
+robo3t:
+  bundle_id: com.3t.Robomongo
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.3t.Robomongo.plist
+    - .3T
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+rocket:
+  bundle_id: net.matthewpalmer.Rocket
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/net.matthewpalmer.Rocket.plist
+    - Library/Application Support/Rocket
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+rofi:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - rofi/config.rasi
+
+royaltsx:
+  bundle_id: com.lemonmojo.RoyalTSX.App
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Royal TSX/License.xml
+    - Library/Application Support/Royal TSX/UserPreferences.config
+    - Library/Preferences/com.lemonmojo.RoyalTSX.App.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+rstudio:
+  bundle_id: org.rstudio.RStudio
+  install_method: cask
+  configuration_files:
+    - .rstudio-desktop
+    - Library/Preferences/org.rstudio.RStudio.plist
+  xdg_configuration_files:
+    - rstudio
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+rtorrent:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .rtorrent.rc
+
+rtx:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .rtx.toml
+    - .tool-versions
+    - .default-go-packages
+    - .default-gems
+    - .default-nodejs-packages
+    - .default-node-packages
+    - .default-npm-packages
+    - .default-python-packages
+    - .default-mix-commands
+  xdg_configuration_files:
+    - rtx
+
+rubitrack5:
+  bundle_id: com.shiftoption.rubitrack5.pro
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.shiftoption.rubitrack5.pro.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+rubocop:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .rubocop.yml
+
+ruby:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .gemrc
+    - .irbrc
+    - .gem/credentials
+    - .pryrc
+    - .aprc
+
+ruby-version:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .ruby-version
+
+rubymine:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/RubyMine40
+    - Library/Preferences/RubyMine40
+    - Library/Application Support/RubyMine50
+    - Library/Preferences/RubyMine50
+    - Library/Application Support/RubyMine60
+    - Library/Preferences/RubyMine60
+    - Library/Application Support/RubyMine70
+    - Library/Preferences/RubyMine70
+    - Library/Application Support/RubyMine80
+    - Library/Preferences/RubyMine80
+    - Library/Application Support/RubyMine2016.1
+    - Library/Preferences/RubyMine2016.1
+    - Library/Application Support/RubyMine2016.2
+    - Library/Preferences/RubyMine2016.2
+    - Library/Application Support/RubyMine2016.3
+    - Library/Preferences/RubyMine2016.3
+    - Library/Application Support/RubyMine2017.3
+    - Library/Preferences/RubyMine2017.3
+    - Library/Application Support/RubyMine2018.1
+    - Library/Preferences/RubyMine2018.1
+    - Library/Application Support/JetBrains/RubyMine2023.1
+    - Library/Application Support/JetBrains/RubyMine2023.2
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+rust:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .cargo/config.toml
+    - .cargo/config
+
+rustrover:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/RustRover2025.2
+    - Library/Preferences/RustRover2025.3
+    - Library/Application Support/JetBrains/RustRover2025.2
+    - Library/Application Support/JetBrains/RustRover2025.3
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+rvm:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .rvmrc
+
+s3cmd:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .s3cfg
+
+sabnzbd:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/SABnzbd/sabnzbd.ini
+    - Library/Application Support/SABnzbd/admin/rss_data.sab
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+sbcl:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .sbclrc
+
+sbt:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .sbtconfig
+    - .sbt/0.12/global.sbt
+    - .sbt/0.12/build.sbt
+    - .sbt/0.12/plugins/plugins.sbt
+    - .sbt/0.12/plugins/build.sbt
+    - .sbt/0.13/global.sbt
+    - .sbt/0.13/build.sbt
+    - .sbt/0.13/plugins/plugins.sbt
+    - .sbt/0.13/plugins/build.sbt
+    - .sbt/1.0/global.sbt
+    - .sbt/1.0/build.sbt
+    - .sbt/1.0/plugins/plugins.sbt
+    - .sbt/1.0/plugins/build.sbt
+
+scenario:
+  bundle_id: com.lagente.scenario
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.lagente.scenario.plist
+    - Library/Scenario
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+screen:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .screenrc
+
+screenhero:
+  bundle_id: com.screenhero.screenhero
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.screenhero.screenhero.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+scrivener:
+  bundle_id: com.literatureandlatte.scrivener2
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.literatureandlatte.scrivener2.plist
+    - Library/Application Support/Scrivener
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+scroll-reverser:
+  bundle_id: com.pilotmoon.scroll-reverser
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.pilotmoon.scroll-reverser.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+secure-pipes:
+  bundle_id: net.edgeservices.connections
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/net.edgeservices.connections.plist
+    - Library/Preferences/net.edgeservices.Secure-Pipes.plist
+    - Library/Preferences/net.edgeservices.sp-config.plist
+    - Library/Application Support/Secure Pipes
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+securecrt:
+  bundle_id: com.vandyke.SecureCRT
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/VanDyke/SecureCRT/Config
+    - Library/Preferences/com.vandyke.SecureCRT.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+seil:
+  bundle_id: org.pqrs.PCKeyboardHack
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/org.pqrs.PCKeyboardHack.plist
+    - Library/Preferences/org.pqrs.Seil.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+selfcontrol:
+  bundle_id: org.eyebeam.SelfControl
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/org.eyebeam.SelfControl.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+sequel-pro:
+  bundle_id: com.sequelpro.SequelPro
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Sequel Pro/Data
+    - Library/Application Support/Sequel Pro/Bundles
+    - Library/Application Support/Sequel Pro/Themes
+    - Library/Preferences/com.sequelpro.SequelPro.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+shadowsocksx-ng:
+  bundle_id: com.qiuyuzhou.ShadowsocksX-NG
+  install_method: cask
+  configuration_files:
+    - .ShadowsocksX-NG
+
+shiftit:
+  bundle_id: org.shiftitapp.ShiftIt
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/org.shiftitapp.ShiftIt.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+shifty:
+  bundle_id: io.natethompson.Shifty
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/io.natethompson.Shifty.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+shimo:
+  bundle_id: com.chungwasoft.Shimo
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Shimo/ShimoProfiles.xml
+    - Library/Preferences/com.chungwasoft.Shimo.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+showyedge:
+  bundle_id: org.pqrs.ShowyEdge
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/org.pqrs.ShowyEdge.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+shsh-blobs:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .shsh
+
+shuttle:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .shuttle.json
+
+sizeup:
+  bundle_id: com.irradiatedsoftware.SizeUp
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.irradiatedsoftware.SizeUp.plist
+    - Library/Application Support/SizeUp/SizeUp.sizeuplicense
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+sizzy:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Sizzy/config.json
+    - Library/Application Support/Sizzy/window-state.json
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+sketchybar:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - sketchybar/sketchybarrc
+    - sketchybar/plugins
+
+skhd:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .skhdrc
+  xdg_configuration_files:
+    - skhd/skhdrc
+
+skim:
+  bundle_id: net.sourceforge.skim-app.skim
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/net.sourceforge.skim-app.skim.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+skitch:
+  bundle_id: com.plasq.skitch
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.plasq.skitch.plist
+    - Library/Preferences/com.plasq.skitch.history
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+slate:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - .slate
+    - .slate.js
+    - Library/Application Support/com.slate.Slate
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+slic3r:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Slic3r
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+slogger:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - Slogger
+
+smartgit:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/SmartGit/smartgit.vmoptions
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+smooth-mouse:
+  bundle_id: com.cyberic.SmoothMouse
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.cyberic.SmoothMouse.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+soulver:
+  bundle_id: com.acqualia.soulver
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Soulver
+    - Library/Preferences/com.acqualia.soulver.plist
+    - Library/Application Support/Soulver 3
+    - Library/Preferences/app.soulver.mac.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+sourcetree:
+  bundle_id: com.torusknot.SourceTreeNotMAS
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/SourceTree/sourcetree.license
+    - Library/Application Support/SourceTree/browser.plist
+    - Library/Application Support/SourceTree/hgrc_sourcetree
+    - Library/Application Support/SourceTree/hostingservices.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+spacelauncher:
+  bundle_id: name.guoc.SpaceLauncher
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/name.guoc.SpaceLauncher.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+spacemacs:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .spacemacs
+    - .spacemacs.d
+
+spacevim:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .SpaceVim.d
+
+spamsieve:
+  bundle_id: com.c-command.SpamSieve
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/SpamSieve
+    - Library/Preferences/com.c-command.SpamSieve.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+spark:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - Library/Application Support/Spark
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+spectacle:
+  bundle_id: com.divisiblebyzero.Spectacle
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.divisiblebyzero.Spectacle.plist
+    - Library/Application Support/Spectacle
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+spectrwm:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .spectrwm.conf
+
+splice:
+  bundle_id: com.splice.Splice
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.splice.Splice.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+spotify:
+  bundle_id: com.spotify.client
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.spotify.client.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+spotify-notifications:
+  bundle_id: io.citruspi.Spotify-Notifications
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/io.citruspi.Spotify-Notifications.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+sqitch:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .sqitch/sqitch.conf
+
+starship:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .config/starship.toml
+
+startupizer2:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Startupizer
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+stata:
+  bundle_id: com.stata.stata12
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Stata
+    - Library/Preferences/com.stata.stata12.plist
+    - Library/Preferences/com.stata.stata13.plist
+    - Library/Preferences/Stata 13 Preferences
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+stats:
+  bundle_id: eu.exelban.Stats
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/eu.exelban.Stats.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+stay:
+  bundle_id: com.cordlessdog.Stay
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.cordlessdog.Stay.plist
+    - Library/Application Support/Stay
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+storyist-3:
+  bundle_id: .com.storyist.storyist
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/.com.storyist.storyist.plist
+    - Library/Preferences/com.storyist.storyist.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+streamdeck:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/com.elgato.StreamDeck
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+subler:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Subler
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+sublime-merge:
+  bundle_id: com.sublimemerge
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Sublime Merge/Packages/User
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+sublime-text:
+  bundle_id: com.sublimetext.4
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Sublime Text/Packages/User
+  xdg_configuration_files:
+    - sublime-text/Packages/User
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+sublime-text-2:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Sublime Text 2/Packages/User
+  xdg_configuration_files:
+    - sublime-text-2/Packages/User
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+sublime-text-3:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Sublime Text 3/Packages/User
+  xdg_configuration_files:
+    - sublime-text-3/Packages/User
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+subversion:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .subversion
+
+superduper:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/SuperDuper!
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+surge:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .surge.conf
+
+swaywm:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - sway
+
+swinsian:
+  bundle_id: com.swinsian.Swinsian
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Swinsian/Library.sqlite
+    - Library/Application Support/Swinsian/License.swinsianlicense
+    - Library/Preferences/com.swinsian.Swinsian.plist
+    - Library/Preferences/com.swinsian.SwinsianDesktopWindow.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+swish:
+  bundle_id: co.highlyopinionated.swish
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/co.highlyopinionated.swish.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+switchhosts:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .SwitchHosts/data/collection/hosts
+
+t:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .trc
+
+tableplus:
+  bundle_id: com.tinyapp.TablePlus
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/com.tinyapp.TablePlus/Cache/Favorite
+    - Library/Application Support/com.tinyapp.TablePlus/Cache/History
+    - Library/Application Support/com.tinyapp.TablePlus/Data
+    - Library/Application Support/com.tinyapp.TablePlus/Plugins
+    - Library/Preferences/com.tinyapp.TablePlus.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+taskpaper:
+  bundle_id: com.hogbaysoftware.TaskPaper.mac
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.hogbaysoftware.TaskPaper.mac.plist
+    - Library/Application Support/TaskPaper
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+taskwarrior:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .taskrc
+
+teamocil:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .teamocil
+
+telegram-macos:
+  bundle_id: ru.keepcoder.Telegram
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/ru.keepcoder.Telegram.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+terminal:
+  bundle_id: com.apple.Terminal
+  install_method: system
+  configuration_files:
+    - Library/Preferences/com.apple.Terminal.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+terminator:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - terminator/config
+
+termite:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - termite/config
+
+termux:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .termux/colors.properties
+    - .termux/termux.properties
+    - .termux/font.ttf
+
+terraform:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .terraformrc
+    - .terraform.d
+
+textexpander:
+  bundle_id: com.smileonmymac.textexpander
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/TextExpander/Settings.textexpander
+    - Library/Preferences/com.smileonmymac.textexpander.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+textmate:
+  bundle_id: com.macromates.TextMate
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/TextMate/Bundles
+    - Library/Application Support/TextMate/PlugIns
+    - Library/Application Support/TextMate/Pristine Copy
+    - Library/Application Support/TextMate/Managed/Bundles
+    - Library/Preferences/com.macromates.textmate.latex_config.plist
+    - .tm_properties
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+textual:
+  bundle_id: com.codeux.irc.textual
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Textual IRC
+    - Library/Preferences/com.codeux.irc.textual.plist
+    - Library/Containers/com.codeux.irc.textual/Data/Library/Preferences/com.codeux.irc.textual.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+things:
+  bundle_id: com.culturedcode.things
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.culturedcode.things.plist
+    - Library/Application Support/Cultured Code/Licenses.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+tidy:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .tidyrc
+
+tig:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .tigrc
+  xdg_configuration_files:
+    - tig/config
+
+tiles:
+  bundle_id: com.sempliva.Tiles
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.sempliva.Tiles.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+tilix:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - tilix.dconf
+
+timeout:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Group Containers/6Z7QW53WB6.com.dejal.timeout
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+tint2:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - tint2/tint2rc
+
+tinyfugue:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .tfrc
+
+tmux:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .tmux.conf
+  xdg_configuration_files:
+    - tmux/tmux.conf
+
+tmuxinator:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - tmuxinator
+
+tmuxp:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .tmuxp
+
+todotxt-cli:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .todo/config
+
+toothfairy:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Scripts/com.robinlu.mac.Tooth-Fairy
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+totalspaces2:
+  bundle_id: com.binaryage.TotalSpaces2
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.binaryage.TotalSpaces2.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+tower:
+  bundle_id: com.fournova.Tower
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Tower
+    - Library/Application Support/com.fournova.Tower3
+    - Library/Preferences/com.fournova.Tower.plist
+    - Library/Preferences/com.fournova.Tower3.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+tower-2:
+  bundle_id: com.fournova.Tower2
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/com.fournova.Tower2
+    - Library/Preferences/com.fournova.Tower2.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+tower-3:
+  bundle_id: com.fournova.Tower3
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/com.fournova.Tower3
+    - Library/Preferences/com.fournova.Tower3.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+transmission:
+  bundle_id: org.m0k.transmission
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/org.m0k.transmission.plist
+    - Library/Application Support/Transmission/blocklists
+  xdg_configuration_files:
+    - transmission/blocklists
+    - transmission/settings.json
+    - transmission/stats.json
+    - transmission-daemon/blocklists
+    - transmission-daemon/settings.json
+    - transmission-daemon/stats.json
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+transmit:
+  bundle_id: com.panic.Transmit
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.panic.Transmit.plist
+    - Library/Application Support/Transmit/Metadata
+    - Library/Application Support/Transmit/Favorites
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+tripmode:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/TripMode
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+trizen:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - trizen/trizen.conf
+
+tunnelblick:
+  bundle_id: net.tunnelblick.tunnelblick
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Tunnelblick/Configurations
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+tvnamer:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .tvnamer.json
+
+twitterrific:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Twitterrific
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+typinator:
+  bundle_id: com.macility.typinator2
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Typinator
+    - Library/Preferences/com.macility.typinator2.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+typora:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/abnerworks.Typora/themes
+  xdg_configuration_files:
+    - Typora/themes
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+ubersicht:
+  bundle_id: tracesOf.Uebersicht
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Übersicht/widgets
+    - Library/Preferences/tracesOf.Uebersicht.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+ulauncher:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - ulauncher/extensions.json
+    - ulauncher/settings.json
+    - ulauncher/shortcuts.json
+
+ventrilo:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/Ventrilo
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+verdaccio:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - verdaccio/config.yaml
+
+versions:
+  bundle_id: com.blackpixel.versions
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Versions/License
+    - Library/Preferences/com.blackpixel.versions.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+vim:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .gvimrc
+    - .gvimrc.after
+    - .gvimrc.before
+    - .vim/autoload
+    - .vim/after
+    - .vim/bundle
+    - .vim/colors
+    - .vim/doc
+    - .vim/ftdetect
+    - .vim/ftplugin
+    - .vim/indent
+    - .vim/pack
+    - .vim/plugin/settings
+    - .vim/spell
+    - .vim/syntax
+    - .vim/vimrc
+    - .vimrc
+    - .vimrc.after
+    - .vimrc.before
+
+vimperator:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .vimperator
+    - .vimperatorrc
+
+vimwiki:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - vimwiki
+
+viscosity:
+  bundle_id: com.viscosityvpn.Viscosity
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Viscosity/OpenVPN
+    - Library/Preferences/com.viscosityvpn.Viscosity.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+vlc:
+  bundle_id: org.videolan.vlc.LSSharedFileList
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/org.videolan.vlc
+    - Library/Preferences/org.videolan.vlc
+    - Library/Preferences/org.videolan.vlc.LSSharedFileList.plist
+    - Library/Preferences/org.videolan.vlc.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+volt:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - volt/lock.json
+    - volt/plugconf
+    - volt/rc
+
+vs4mac:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/VisualStudio
+    - Library/Preferences/VisualStudio/7.0/EditingLayout.xml
+    - Library/Preferences/VisualStudio/7.0/MonoDevelopProperties.xml
+    - Library/Preferences/VisualStudio/8.0/EditingLayout.xml
+    - Library/Preferences/VisualStudio/8.0/MonoDevelopProperties.xml
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+vscode-insiders:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Code - Insiders/User/snippets
+    - Library/Application Support/Code - Insiders/User/prompts
+    - Library/Application Support/Code - Insiders/User/keybindings.json
+    - Library/Application Support/Code - Insiders/User/settings.json
+  xdg_configuration_files:
+    - Code - Insiders/User/snippets
+    - Code - Insiders/User/keybindings.json
+    - Code - Insiders/User/settings.json
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+vscode-oss:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/Code - OSS/User/snippets
+    - Library/Application Support/Code - OSS/User/keybindings.json
+    - Library/Application Support/Code - OSS/User/settings.json
+  xdg_configuration_files:
+    - Code - OSS/User/snippets
+    - Code - OSS/User/keybindings.json
+    - Code - OSS/User/settings.json
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+vscodium:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/VSCodium/User/snippets
+    - Library/Application Support/VSCodium/User/keybindings.json
+    - Library/Application Support/VSCodium/User/settings.json
+  xdg_configuration_files:
+    - VSCodium/User/snippets
+    - VSCodium/User/keybindings.json
+    - VSCodium/User/settings.json
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+wakatime:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .wakatime.cfg
+
+waybar:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - waybar
+
+webstorm:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/JetBrains/WebStorm2020.1
+    - Library/Application Support/JetBrains/WebStorm2020.2
+    - Library/Application Support/JetBrains/WebStorm2020.3
+    - Library/Application Support/JetBrains/WebStorm2020.4
+    - Library/Application Support/JetBrains/WebStorm2021.1
+    - Library/Application Support/JetBrains/WebStorm2021.2
+    - Library/Application Support/JetBrains/WebStorm2021.3
+    - Library/Application Support/JetBrains/WebStorm2023.1
+    - Library/Application Support/JetBrains/WebStorm2023.2
+    - Library/Application Support/WebStorm
+    - Library/Application Support/WebStorm10
+    - Library/Application Support/WebStorm11
+    - Library/Application Support/WebStorm2016.1
+    - Library/Application Support/WebStorm2016.2
+    - Library/Application Support/WebStorm2016.3
+    - Library/Application Support/WebStorm2017.1
+    - Library/Application Support/WebStorm2017.2
+    - Library/Application Support/WebStorm2017.3
+    - Library/Application Support/WebStorm2018.1
+    - Library/Application Support/WebStorm2018.2
+    - Library/Application Support/WebStorm2018.3
+    - Library/Application Support/WebStorm2019.1
+    - Library/Application Support/WebStorm2019.2
+    - Library/Application Support/WebStorm2019.3
+    - Library/Application Support/WebStorm2019.4
+    - Library/Application Support/WebStorm8
+    - Library/Application Support/WebStorm9
+    - Library/Preferences/WebStorm10
+    - Library/Preferences/WebStorm11
+    - Library/Preferences/WebStorm2016.1
+    - Library/Preferences/WebStorm2016.2
+    - Library/Preferences/WebStorm2016.3
+    - Library/Preferences/WebStorm2017.1
+    - Library/Preferences/WebStorm2017.2
+    - Library/Preferences/WebStorm2017.3
+    - Library/Preferences/WebStorm2018.1
+    - Library/Preferences/WebStorm2018.2
+    - Library/Preferences/WebStorm2018.3
+    - Library/Preferences/WebStorm2019.1
+    - Library/Preferences/WebStorm2019.2
+    - Library/Preferences/WebStorm2019.3
+    - Library/Preferences/WebStorm2019.4
+    - Library/Preferences/WebStorm8
+    - Library/Preferences/WebStorm9
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+wezterm:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - .wezterm.lua
+  xdg_configuration_files:
+    - wezterm
+
+wget:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .wgetrc
+    - .wget-hsts
+
+whatsapp:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/WhatsApp/Preferences
+    - Library/Application Support/WhatsApp/settings.json
+    - Library/Preferences/WhatsApp-Helper.plist
+    - Library/Preferences/WhatsApp.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+windsurf:
+  bundle_id: com.exafunction.windsurf
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Windsurf/User/snippets
+    - Library/Application Support/Windsurf/User/keybindings.json
+    - Library/Application Support/Windsurf/User/settings.json
+  xdg_configuration_files:
+    - Windsurf/User/snippets
+    - Windsurf/User/keybindings.json
+    - Windsurf/User/settings.json
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+wireshark:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - wireshark
+
+witch:
+  bundle_id: com.manytricks.witchdaemon
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/com.manytricks.Witch.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+wordgrinder:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .wordgrinder.settings
+
+workrave:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .workrave/id
+    - .workrave/historystats
+
+wp-cli:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .wp-cli
+
+x11:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .Xmodmap
+    - .Xresources
+    - .fonts
+    - .xinitrc
+
+xamarinstudio-5:
+  bundle_id: null
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/XamarinStudio-5.0
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+xbar:
+  bundle_id: com.xbarapp.app
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/xbar/xbar.config.json
+    - Library/Application Support/xbar/plugins
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+xbindkeys:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .xbindkeysrc
+
+xchat:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .xchat2
+
+xcode:
+  bundle_id: com.apple.dt.Xcode
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.apple.dt.Xcode.plist
+    - Library/Application Support/Developer/Shared/Xcode/Plug-ins
+    - Library/Developer/Xcode/UserData/CodeSnippets
+    - Library/Developer/Xcode/UserData/FontAndColorThemes
+    - Library/Developer/Xcode/UserData/KeyBindings
+    - Library/Developer/Xcode/UserData/Debugger
+    - Library/Developer/Xcode/UserData/xcdebugger
+    - Library/Developer/Xcode/UserData/SearchScopes.xcsclist
+    - Library/Developer/Xcode/Templates
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+xee:
+  bundle_id: cx.c3.Xee3
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/cx.c3.Xee3.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+xemacs:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .xemacs
+
+xld:
+  bundle_id: jp.tmkk.XLD
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/XLD
+    - Library/Preferences/jp.tmkk.XLD.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+xonsh:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .xonshrc
+  xdg_configuration_files:
+    - xonsh
+
+xtrafinder:
+  bundle_id: com.trankynam.XtraFinder
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.trankynam.XtraFinder.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+yabai:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .yabairc
+  xdg_configuration_files:
+    - yabai/yabairc
+
+yarn:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .yarnrc
+
+yazi:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - yazi/yazi.toml
+    - yazi/keymap.toml
+    - yazi/theme.toml
+
+youtube-dl:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - youtube-dl/config
+
+yummyftp:
+  bundle_id: com.yummysoftware.yummy-ftp
+  install_method: dmg
+  configuration_files:
+    - Library/Preferences/com.yummysoftware.yummy-ftp.plist
+    - Library/Application Support/Yummy FTP/DefaultBookmark.bkmk
+    - Library/Application Support/Yummy FTP/Bookmarks
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+zabbix-cli:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .zabbix-cli/zabbix-cli.conf
+
+zathura:
+  bundle_id: null
+  install_method: formula
+  xdg_configuration_files:
+    - zathura/zathurarc
+
+zed:
+  bundle_id: null
+  install_method: cask
+  xdg_configuration_files:
+    - zed/keymap.json
+    - zed/settings.json
+
+zoxide:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - Library/Application Support/zoxide
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "*.log"
+    - "Logs/"
+
+zinit:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .zinit/snippets
+    - .zinit/plugins
+  xdg_configuration_files:
+    - zinit
+  exclude_files:
+    - .zinit/bin/
+    - .zinit/polaris/
+    - .zinit/completions/_zinit
+    - "*.zwc"
+    - "*.lock"
+  notes: "Zsh plugin manager. Install via: bash -c \"$(curl --fail --show-error --silent --location https://raw.githubusercontent.com/zdharma-continuum/zinit/HEAD/scripts/install.sh)\". Only snippets and plugins directories need backup."
+
+zsh:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .zshenv
+    - .zprofile
+    - .zshrc
+    - .zlogin
+    - .zlogout
+
+oh-my-zsh:
+  bundle_id: null
+  install_method: formula
+  configuration_files:
+    - .zshrc
+    - .oh-my-zsh/custom/
+  exclude_files:
+    - .oh-my-zsh/cache/
+    - .oh-my-zsh/log/
+    - .oh-my-zsh/.git/
+    - .oh-my-zsh/plugins/
+    - .oh-my-zsh/themes/
+    - .oh-my-zsh/lib/
+    - .oh-my-zsh/tools/
+    - .oh-my-zsh/templates/
+    - .oh-my-zsh/*.md
+    - .oh-my-zsh/.github/
+  notes: "Zsh framework. Install via: sh -c \"$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)\". Only custom/ folder needs backup (custom plugins/themes). Built-in plugins/themes are reinstalled automatically."
+
+# =============================================================================
+# BROWSERS
+# =============================================================================
+google-chrome:
+  bundle_id: com.google.Chrome
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Google/Chrome/Default/Preferences
+    - Library/Application Support/Google/Chrome/Default/Bookmarks
+    - Library/Application Support/Google/Chrome/Default/Extensions/
+    - Library/Application Support/Google/Chrome/Local State
+    - Library/Preferences/com.google.Chrome.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "Code Cache/"
+    - "GPUCache/"
+    - "Service Worker/"
+    - "*.log"
+    - "Crashpad/"
+    - "BrowserMetrics/"
+    - "download_cache/"
+  notes: "Profile data in Default/. Extensions stored in Extensions/. Sync via Google account recommended."
+
+firefox:
+  bundle_id: org.mozilla.firefox
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Firefox/profiles.ini
+    - Library/Application Support/Firefox/installs.ini
+    - Library/Application Support/Firefox/Profiles/
+    - Library/Preferences/org.mozilla.firefox.plist
+  exclude_files:
+    - "cache2/"
+    - "Cache/"
+    - "startupCache/"
+    - "*.sqlite-shm"
+    - "*.sqlite-wal"
+    - "Crash Reports/"
+    - "Pending Pings/"
+  notes: "Profile locations in profiles.ini. Important files: prefs.js, user.js, bookmarkbackups/."
+
+microsoft-edge:
+  bundle_id: com.microsoft.edgemac
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Microsoft Edge/Default/Preferences
+    - Library/Application Support/Microsoft Edge/Default/Bookmarks
+    - Library/Application Support/Microsoft Edge/Default/Extensions/
+    - Library/Application Support/Microsoft Edge/Local State
+    - Library/Preferences/com.microsoft.edgemac.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "Code Cache/"
+    - "GPUCache/"
+    - "Service Worker/"
+    - "*.log"
+    - "Crashpad/"
+    - "BrowserMetrics/"
+  notes: "Chromium-based. Syncs via Microsoft account. Extensions in Extensions/."
+
+safari:
+  bundle_id: com.apple.Safari
+  install_method: system
+  configuration_files:
+    - Library/Safari/Bookmarks.plist
+    - Library/Safari/History.db
+    - Library/Safari/ReadingListArchives/
+    - Library/Safari/Extensions/
+    - Library/Preferences/com.apple.Safari.plist
+    - Library/Containers/com.apple.Safari/
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "*.db-shm"
+    - "*.db-wal"
+    - "Webpage Previews/"
+  notes: "System app. Syncs via iCloud. Reading list in ReadingListArchives/."
+
+# =============================================================================
+# COMMUNICATION & COLLABORATION
+# =============================================================================
+slack:
+  bundle_id: com.tinyspeck.slackmacgap
+  install_method: mas
+  configuration_files:
+    - Library/Containers/com.tinyspeck.slackmacgap/Data/Library/Application Support/Slack/
+    - Library/Group Containers/BQR82RBBHL.com.tinyspeck.slackmacgap/
+    - Library/Group Containers/BQR82RBBHL.slack/
+    - Library/Preferences/com.tinyspeck.slackmacgap.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "GPUCache/"
+    - "Code Cache/"
+    - "*.log"
+    - "Logs/"
+    - "Service Worker/"
+    - "IndexedDB/"
+  notes: "Mac App Store version. Settings sync via Slack account. Local storage in Containers."
+
+microsoft-teams:
+  bundle_id: com.microsoft.teams2
+  install_method: cask
+  configuration_files:
+    - Library/Containers/com.microsoft.teams2/
+    - Library/Group Containers/UBF8T346G9.com.microsoft.teams/
+    - Library/Preferences/com.microsoft.teams2.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "GPUCache/"
+    - "Code Cache/"
+    - "*.log"
+    - "Logs/"
+    - "IndexedDB/"
+    - "blob_storage/"
+  notes: "New Teams app (teams2). Settings sync via Microsoft account."
+
+zoom:
+  bundle_id: us.zoom.xos
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/zoom.us/data/
+    - Library/Application Support/zoom.us/Plugins/
+    - Library/Group Containers/BJ4HAAB9B3.ZoomClient3rd/
+    - Library/Preferences/us.zoom.xos.plist
+    - Library/Preferences/ZoomChat.plist
+    - Library/Preferences/us.zoom.updater.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "*.log"
+    - "Logs/"
+    - "asr/"
+    - "CefPlugin/"
+  notes: "Video conferencing. Settings sync via Zoom account. Virtual backgrounds in data/."
+
+miro:
+  bundle_id: com.electron.realtimeboard
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/RealtimeBoard/
+    - Library/Preferences/com.electron.realtimeboard.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "GPUCache/"
+    - "Code Cache/"
+    - "*.log"
+    - "Logs/"
+    - "Crashpad/"
+    - "Service Worker/"
+  notes: "Collaborative whiteboard. Electron-based. Settings sync via Miro account."
+
+# =============================================================================
+# AI ASSISTANTS
+# =============================================================================
+chatgpt:
+  bundle_id: com.openai.chat
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/com.openai.chat/
+    - Library/Application Support/ChatGPT/
+    - Library/Group Containers/group.com.openai.chat/
+    - Library/Preferences/com.openai.chat.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "GPUCache/"
+    - "Code Cache/"
+    - "*.log"
+    - "Crashpad/"
+    - "blob_storage/"
+  notes: "OpenAI ChatGPT desktop app. Settings sync via OpenAI account."
+
+chatgpt-atlas:
+  bundle_id: com.openai.atlas
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/com.openai.atlas/
+    - Library/Preferences/com.openai.atlas.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "GPUCache/"
+    - "*.log"
+  notes: "OpenAI Atlas companion app."
+
+claude:
+  bundle_id: com.anthropic.claudefordesktop
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Claude/
+    - Library/Application Support/Claude/Claude Extensions/
+    - Library/Application Support/Claude/Claude Extensions Settings/
+    - Library/Preferences/com.anthropic.claudefordesktop.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "GPUCache/"
+    - "Code Cache/"
+    - "*.log"
+    - "Crashpad/"
+    - "DawnGraphiteCache/"
+    - "DawnWebGPUCache/"
+    - "IndexedDB/"
+    - "blob_storage/"
+  notes: "Anthropic Claude desktop. Extensions in Claude Extensions/. MCP configs in claude_desktop_config.json."
+
+# =============================================================================
+# DEVELOPMENT TOOLS
+# =============================================================================
+azure-data-studio:
+  bundle_id: com.azuredatastudio.oss
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/azuredatastudio/User/settings.json
+    - Library/Application Support/azuredatastudio/User/keybindings.json
+    - Library/Application Support/azuredatastudio/User/snippets/
+    - Library/Application Support/azuredatastudio/User/globalStorage/
+    - Library/Application Support/azuredatastudio/Azure Accounts/
+    - Library/Preferences/com.azuredatastudio.oss.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "CachedData/"
+    - "CachedExtensionVSIXs/"
+    - "Code Cache/"
+    - "GPUCache/"
+    - "*.log"
+    - "Logs/"
+    - "Crashpad/"
+    - "blob_storage/"
+    - "workspaceStorage/"
+    - "Backups/"
+  extensions_cmd: "azuredatastudio --list-extensions"
+  notes: "VS Code-based. Database connections and Azure accounts in separate folders."
+
+github-desktop:
+  bundle_id: com.github.GitHubClient
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/GitHub Desktop/
+    - Library/Preferences/com.github.GitHubClient.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "GPUCache/"
+    - "Code Cache/"
+    - "*.log"
+    - "Logs/"
+    - "Crashpad/"
+    - "IndexedDB/"
+    - "blob_storage/"
+  notes: "GitHub's official Git client. Repositories managed via Local Storage/leveldb."
+
+postman:
+  bundle_id: com.postmanlabs.mac
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Postman/Postman_Config/
+    - Library/Application Support/Postman/Partitions/
+    - Library/Application Support/Postman/storage/
+    - Library/Preferences/com.postmanlabs.mac.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "Code Cache/"
+    - "*.log"
+    - "logs/"
+    - "Crashpad/"
+    - "proxy/"
+  notes: "API testing tool. Collections sync via Postman account. Local workspaces in storage/."
+
+altair-graphql-client:
+  bundle_id: com.xkoji.altair
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Altair GraphQL Client/
+    - Library/Preferences/com.xkoji.altair.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "GPUCache/"
+    - "Code Cache/"
+    - "*.log"
+    - "Crashpad/"
+    - "DawnGraphiteCache/"
+    - "DawnWebGPUCache/"
+    - "blob_storage/"
+  notes: "GraphQL IDE. Electron-based. Queries and settings in blob_storage."
+
+graphql-editor-demo:
+  bundle_id: com.electron.graphql-editor-demo
+  install_method: dmg
+  configuration_files:
+    - Library/Application Support/GraphQL Editor Demo/
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "GPUCache/"
+    - "*.log"
+  notes: "GraphQL editor demo app. Electron-based."
+
+conductor:
+  bundle_id: com.conductor.app
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/com.conductor.app/
+    - Library/Preferences/com.conductor.app.plist
+  exclude_files:
+    - "*.log"
+    - "bin/"
+  notes: "Claude Code conductor app. Database in conductor.db."
+
+# =============================================================================
+# MICROSOFT OFFICE SUITE
+# =============================================================================
+microsoft-excel:
+  bundle_id: com.microsoft.Excel
+  install_method: mas
+  configuration_files:
+    - Library/Containers/com.microsoft.Excel/
+    - Library/Group Containers/UBF8T346G9.Office/
+    - Library/Group Containers/UBF8T346G9.ms/
+    - Library/Preferences/com.microsoft.Excel.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+    - "Logs/"
+    - "Outlook/"
+    - "FontCache/"
+    - "SolutionPackages/"
+    - "MicrosoftRegistrationDB/"
+    - "ComRPC32/"
+    - "TemporaryItems/"
+    - "Data/"
+  notes: "Mac App Store version. Settings sync via Microsoft 365. Templates in UBF8T346G9.Office."
+
+microsoft-word:
+  bundle_id: com.microsoft.Word
+  install_method: mas
+  configuration_files:
+    - Library/Containers/com.microsoft.Word/
+    - Library/Group Containers/UBF8T346G9.Office/
+    - Library/Group Containers/UBF8T346G9.ms/
+    - Library/Preferences/com.microsoft.Word.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+    - "Logs/"
+    - "Outlook/"
+    - "FontCache/"
+    - "SolutionPackages/"
+    - "MicrosoftRegistrationDB/"
+    - "ComRPC32/"
+    - "TemporaryItems/"
+    - "Data/"
+  notes: "Mac App Store version. Custom dictionaries in UBF8T346G9.Office."
+
+microsoft-powerpoint:
+  bundle_id: com.microsoft.Powerpoint
+  install_method: mas
+  configuration_files:
+    - Library/Containers/com.microsoft.Powerpoint/
+    - Library/Group Containers/UBF8T346G9.Office/
+    - Library/Group Containers/UBF8T346G9.ms/
+    - Library/Preferences/com.microsoft.Powerpoint.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+    - "Logs/"
+    - "Outlook/"
+    - "FontCache/"
+    - "SolutionPackages/"
+    - "MicrosoftRegistrationDB/"
+    - "ComRPC32/"
+    - "TemporaryItems/"
+    - "Data/"
+  notes: "Mac App Store version. Templates sync via Microsoft 365."
+
+microsoft-onenote:
+  bundle_id: com.microsoft.onenote.mac
+  install_method: mas
+  configuration_files:
+    - Library/Containers/com.microsoft.onenote.mac/
+    - Library/Group Containers/UBF8T346G9.Office/
+    - Library/Preferences/com.microsoft.onenote.mac.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+    - "Logs/"
+    - "Outlook/"
+    - "FontCache/"
+    - "SolutionPackages/"
+    - "MicrosoftRegistrationDB/"
+    - "ComRPC32/"
+    - "TemporaryItems/"
+    - "Data/"
+  notes: "Mac App Store version. Notebooks sync via OneDrive/SharePoint."
+
+microsoft-outlook:
+  bundle_id: com.microsoft.Outlook
+  install_method: mas
+  configuration_files:
+    - Library/Containers/com.microsoft.Outlook/
+    - Library/Group Containers/UBF8T346G9.Office/
+    - Library/Preferences/com.microsoft.Outlook.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+    - "Logs/"
+    - "*.olk15"
+    - "Data/"
+    - "Outlook/"
+    - "FontCache/"
+    - "SolutionPackages/"
+    - "MicrosoftRegistrationDB/"
+    - "ComRPC32/"
+    - "TemporaryItems/"
+  notes: "Mac App Store version. Email data can be large - consider sync over backup."
+
+microsoft-onedrive:
+  bundle_id: com.microsoft.OneDrive-mac
+  install_method: mas
+  configuration_files:
+    - Library/Containers/com.microsoft.OneDrive-mac/
+    - Library/Group Containers/UBF8T346G9.OneDriveSyncClientSuite/
+    - Library/Preferences/com.microsoft.OneDrive.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+    - "Logs/"
+    - "*.noindex"
+    - "*.noindex/"
+    - "OneDrive -*"
+    - "File Provider Storage/"
+    - "FileProviderLogs/"
+    - "Data/"
+  notes: "Cloud sync client. Sync settings in OneDriveSyncClientSuite. Data syncs via cloud."
+
+company-portal:
+  bundle_id: com.microsoft.CompanyPortalMac
+  install_method: system
+  configuration_files:
+    - Library/Application Support/com.microsoft.CompanyPortalMac/
+    - Library/Application Support/Company Portal/
+    - Library/Containers/com.microsoft.CompanyPortalMac/
+    - Library/Group Containers/UBF8T346G9.com.microsoft.identity.ssoextensiongroup/
+    - Library/Preferences/com.microsoft.CompanyPortalMac.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+    - "Logs/"
+  notes: "Microsoft Intune management. Typically managed by IT department."
+
+windows-app:
+  bundle_id: com.microsoft.rdc.macos
+  install_method: mas
+  configuration_files:
+    - Library/Containers/com.microsoft.rdc.macos/
+    - Library/Group Containers/UBF8T346G9.com.microsoft.rdc/
+    - Library/Preferences/com.microsoft.rdc.macos.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+  notes: "Remote desktop client (formerly Microsoft Remote Desktop). Connection bookmarks in container."
+
+# =============================================================================
+# APPLE IWORK SUITE
+# =============================================================================
+keynote:
+  bundle_id: com.apple.iWork.Keynote
+  install_method: mas
+  configuration_files:
+    - Library/Containers/com.apple.iWork.Keynote/
+    - Library/Group Containers/74J34U3R6X.com.apple.iWork/
+    - Library/Preferences/com.apple.iWork.Keynote.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+  notes: "Apple presentation app. Custom themes in iWork Group Container."
+
+numbers:
+  bundle_id: com.apple.iWork.Numbers
+  install_method: mas
+  configuration_files:
+    - Library/Containers/com.apple.iWork.Numbers/
+    - Library/Group Containers/74J34U3R6X.com.apple.iWork/
+    - Library/Preferences/com.apple.iWork.Numbers.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+  notes: "Apple spreadsheet app. Custom templates in iWork Group Container."
+
+pages:
+  bundle_id: com.apple.iWork.Pages
+  install_method: mas
+  configuration_files:
+    - Library/Containers/com.apple.iWork.Pages/
+    - Library/Group Containers/74J34U3R6X.com.apple.iWork/
+    - Library/Preferences/com.apple.iWork.Pages.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+  notes: "Apple word processor. Custom templates in iWork Group Container."
+
+# =============================================================================
+# APPLE MEDIA APPS
+# =============================================================================
+garageband:
+  bundle_id: com.apple.garageband10
+  install_method: mas
+  configuration_files:
+    - Library/Containers/com.apple.garageband10/
+    - Library/Audio/Apple Loops/
+    - Library/Audio/Presets/
+    - Library/Preferences/com.apple.garageband10.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+  notes: "Music creation app. Additional content can be downloaded in-app. Loops are large."
+
+imovie:
+  bundle_id: com.apple.iMovieApp
+  install_method: mas
+  configuration_files:
+    - Library/Containers/com.apple.iMovieApp/
+    - Library/Preferences/com.apple.iMovieApp.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+    - "Render Files/"
+  notes: "Video editing app. Projects stored in Movies/ folder."
+
+# =============================================================================
+# PRODUCTIVITY & UTILITIES (SINDRE SORHUS)
+# =============================================================================
+folder-peek:
+  bundle_id: com.sindresorhus.Folder-Peek
+  install_method: mas
+  configuration_files:
+    - Library/Containers/com.sindresorhus.Folder-Peek/
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+  notes: "Quick folder access from menu bar. Sandboxed Mac App Store app."
+
+pure-paste:
+  bundle_id: com.sindresorhus.Pure-Paste
+  install_method: mas
+  configuration_files:
+    - Library/Containers/com.sindresorhus.Pure-Paste/
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+  notes: "Paste as plain text utility. Sandboxed Mac App Store app."
+
+plain-text-editor:
+  bundle_id: com.sindresorhus.Plain-Text-Editor
+  install_method: mas
+  configuration_files:
+    - Library/Containers/com.sindresorhus.Plain-Text-Editor/
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+  notes: "Simple text editor. Sandboxed Mac App Store app."
+
+# =============================================================================
+# PRODUCTIVITY & UTILITIES (OTHER)
+# =============================================================================
+hidden-bar:
+  bundle_id: com.dwarvesv.minimalbar
+  install_method: mas
+  configuration_files:
+    - Library/Preferences/com.dwarvesv.minimalbar.plist
+  exclude_files:
+    - "*.log"
+  notes: "Menu bar icon manager. Simple plist-based settings."
+
+tot:
+  bundle_id: com.iconfactory.Tot
+  install_method: mas
+  configuration_files:
+    - Library/Containers/com.iconfactory.Tot/
+    - Library/Group Containers/group.com.iconfactory.Tot/
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+  notes: "Tiny text notes. Data syncs via iCloud. 7 color-coded note slots."
+
+shottr:
+  bundle_id: cc.ffitch.shottr
+  install_method: cask
+  configuration_files:
+    - Library/Containers/cc.ffitch.shottr/
+    - Library/Group Containers/group.cc.ffitch.uploader/
+    - Library/Preferences/cc.ffitch.shottr.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+  notes: "Screenshot tool with annotation. OCR and scrolling capture support."
+
+keeper-password-manager:
+  bundle_id: com.callpod.keepermac.lite
+  install_method: mas
+  configuration_files:
+    - Library/Containers/com.callpod.keepermac.lite/
+    - Library/Group Containers/234QNB7GCA.com.callpod.keepermac.lite/
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+  notes: "Password manager. Data syncs via Keeper account. Do NOT backup - re-authenticate instead."
+
+mouse-jiggler:
+  bundle_id: clemstation.mouse-jiggler
+  install_method: mas
+  configuration_files:
+    - Library/Preferences/clemstation.mouse-jiggler.plist
+  exclude_files:
+    - "*.log"
+  notes: "Prevents screen sleep by simulating mouse movement."
+
+mouse-shaker:
+  bundle_id: clemstation-studios.Mouse-Shaker
+  install_method: cask
+  configuration_files:
+    - Library/Preferences/clemstation-studios.Mouse-Shaker.plist
+  exclude_files:
+    - "*.log"
+  notes: "Mouse utility app."
+
+# =============================================================================
+# QUICKLOOK PLUGINS
+# =============================================================================
+qlmarkdown:
+  bundle_id: org.sbarex.QLMarkdown
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/QLMarkdown/
+    - Library/Preferences/org.sbarex.QLMarkdown.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+  notes: "QuickLook plugin for Markdown. Custom CSS themes supported."
+
+syntax-highlight:
+  bundle_id: org.sbarex.SourceCodeSyntaxHighlight
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Syntax Highlight/
+    - Library/Preferences/org.sbarex.SourceCodeSyntaxHighlight.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+  notes: "QuickLook plugin for source code. Custom themes and languages."
+
+# =============================================================================
+# HARDWARE & PERIPHERALS
+# =============================================================================
+logitech-options-plus:
+  bundle_id: com.logi.optionsplus
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/LogiOptionsPlus/
+    - Library/Preferences/com.logi.optionsplus.plist
+    - Library/Preferences/com.logitech.logiaipromptbuilder.plist
+  exclude_files:
+    - "Cache/"
+    - "Caches/"
+    - "*.log"
+    - "devio_cache/"
+    - "icon_cache/"
+    - "GPUCache/"
+    - "DawnGraphiteCache/"
+    - "DawnWebGPUCache/"
+  notes: "Logitech device customization. Button mappings and gestures. Electron-based."
+
+displaylink:
+  bundle_id: com.displaylink.DisplayLinkUserAgent
+  install_method: cask
+  configuration_files:
+    - Library/Group Containers/73YQY62QM3.com.displaylink.DisplayLinkShared/
+    - Library/Preferences/com.displaylink.DisplayLinkUserAgent.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+  notes: "DisplayLink USB display driver. Display arrangements in Group Container."
+
+# =============================================================================
+# VPN & SECURITY
+# =============================================================================
+cisco-secure-client:
+  bundle_id: com.cisco.secureclient.gui
+  install_method: system
+  configuration_files:
+    - Library/Containers/com.cisco.anyconnect.macos.acsock/
+    - Library/Preferences/com.cisco.secureclient.gui.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+    - "Logs/"
+  notes: "Corporate VPN client. Profiles typically managed by IT. AnyConnect successor."
+
+# =============================================================================
+# ADOBE
+# =============================================================================
+adobe-acrobat-pro:
+  bundle_id: com.adobe.Acrobat.Pro
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/Adobe/Acrobat/
+    - Library/Preferences/com.adobe.Acrobat.Pro.plist
+    - Library/Preferences/com.adobe.crashreporter.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+    - "Logs/"
+    - "AcroCef/"
+    - "LogTransport2/"
+    - "LogTransport2CC/"
+    - "Sonar/"
+    - "Crashpad/"
+  notes: "PDF editor. Stamps and custom tools in Acrobat folder. License managed by Adobe CC."
+
+# =============================================================================
+# OTHER APPS
+# =============================================================================
+xink:
+  bundle_id: com.emailsignature.Xink
+  install_method: cask
+  configuration_files:
+    - Library/Application Support/com.emailsignature.Xink/
+    - Library/Preferences/com.emailsignature.Xink.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+  notes: "Email signature management. Signatures sync via Xink account."
+
+macmanage:
+  bundle_id: com.addigy.MacManage
+  install_method: system
+  configuration_files:
+    - Library/Group Containers/R5LEJ8Y242.group.com.addigy.SelfService/
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+  notes: "Addigy MDM agent. Typically managed by IT department."
+
+aerial:
+  bundle_id: null
+  install_method: cask
+  configuration_files:
+    - Library/Containers/com.JohnCoates.Aerial/
+    - Library/Preferences/com.JohnCoates.Aerial.plist
+  exclude_files:
+    - "Caches/"
+    - "Cache/"
+    - "*.log"
+  notes: "Apple TV screensaver for Mac. Video cache can be large."
+

@@ -1,0 +1,32 @@
+# Python virtual environments
+.venv
+venv/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Claude Code
+CLAUDE.md
+.claude
+.specify
+
+# Miscellaneous
+.specs/
+.osgrep
+.scripts/
+macinventory/python/tools/
+macinventory/agents/backup/
+temp/

@@ -1,0 +1,300 @@
+# MacInventory Security Patterns
+# Patterns for filtering sensitive data from configuration backups
+# Preserves file structure while redacting secret values
+#
+# Schema:
+#   filter_patterns:
+#     - name: string           # Human-readable identifier
+#       pattern: string        # Regex pattern to match secrets
+#       replacement: string    # Placeholder to insert
+#       description: string    # What this pattern catches
+#
+#   exclude_files: [string]    # Glob patterns for files to never backup
+#   exclude_directories: [string]  # Directories to skip entirely
+#   exclude_apps: [string]     # Apps that store sync metadata, not configs
+
+# =============================================================================
+# FILTER PATTERNS
+# These replace secret values with placeholders, keeping config structure intact
+# =============================================================================
+filter_patterns:
+  # --- Generic Secrets ---
+  - name: generic_api_key
+    pattern: "(?i)(api[_-]?key|apikey)\\s*[:=]\\s*[\"']?([A-Za-z0-9_-]{20,})[\"']?"
+    replacement: "\\1=<REDACTED_API_KEY>"
+    description: "Matches API_KEY=value, api-key: value, apiKey=value patterns"
+
+  - name: generic_secret
+    pattern: "(?i)(secret|password|passwd|pwd)\\s*[:=]\\s*[\"']?([^\\s\"'\\n]+)[\"']?"
+    replacement: "\\1=<REDACTED_SECRET>"
+    description: "Matches secret=, password=, passwd= patterns"
+
+  - name: generic_token
+    pattern: "(?i)(token|auth[_-]?token|access[_-]?token)\\s*[:=]\\s*[\"']?([A-Za-z0-9_.-]{20,})[\"']?"
+    replacement: "\\1=<REDACTED_TOKEN>"
+    description: "Matches token=, auth_token=, access-token= patterns"
+
+  # --- Provider-Specific Tokens ---
+  - name: github_pat
+    pattern: "ghp_[A-Za-z0-9]{36}"
+    replacement: "<REDACTED_GITHUB_PAT>"
+    description: "GitHub Personal Access Token (new format)"
+
+  - name: github_tokens
+    pattern: "gh[pousr]_[A-Za-z0-9]{36,}"
+    replacement: "<REDACTED_GITHUB_TOKEN>"
+    description: "GitHub tokens (PAT, OAuth, user-to-server, refresh)"
+
+  - name: openai_key
+    pattern: "sk-[A-Za-z0-9]{48}"
+    replacement: "<REDACTED_OPENAI_KEY>"
+    description: "OpenAI API key"
+
+  - name: anthropic_key
+    pattern: "sk-ant-[A-Za-z0-9-]{80,}"
+    replacement: "<REDACTED_ANTHROPIC_KEY>"
+    description: "Anthropic API key"
+
+  - name: aws_access_key
+    pattern: "AKIA[A-Z0-9]{16}"
+    replacement: "<REDACTED_AWS_ACCESS_KEY>"
+    description: "AWS Access Key ID"
+
+  - name: aws_secret_key
+    pattern: "(?i)(aws[_-]?secret[_-]?access[_-]?key)\\s*[:=]\\s*[\"']?([A-Za-z0-9/+=]{40})[\"']?"
+    replacement: "\\1=<REDACTED_AWS_SECRET>"
+    description: "AWS Secret Access Key"
+
+  - name: stripe_key
+    pattern: "(sk_live_|sk_test_|pk_live_|pk_test_)[A-Za-z0-9]{24,}"
+    replacement: "<REDACTED_STRIPE_KEY>"
+    description: "Stripe API keys (live and test)"
+
+  - name: slack_token
+    pattern: "xox[baprs]-[A-Za-z0-9-]+"
+    replacement: "<REDACTED_SLACK_TOKEN>"
+    description: "Slack tokens (bot, app, user)"
+
+  # --- Authorization Headers ---
+  - name: bearer_token
+    pattern: "(?i)bearer\\s+[A-Za-z0-9._-]+"
+    replacement: "Bearer <REDACTED_TOKEN>"
+    description: "Authorization bearer tokens"
+
+  - name: basic_auth
+    pattern: "(?i)basic\\s+[A-Za-z0-9+/=]+"
+    replacement: "Basic <REDACTED_CREDENTIALS>"
+    description: "Basic authentication credentials (base64)"
+
+  # --- Database Connection Strings ---
+  - name: postgres_url
+    pattern: "postgres(ql)?://[^:]+:([^@]+)@"
+    replacement: "postgresql://user:<REDACTED_PASSWORD>@"
+    description: "PostgreSQL connection string with password"
+
+  - name: mysql_url
+    pattern: "mysql://[^:]+:([^@]+)@"
+    replacement: "mysql://user:<REDACTED_PASSWORD>@"
+    description: "MySQL connection string with password"
+
+  - name: mongodb_url
+    pattern: "mongodb(\\+srv)?://[^:]+:([^@]+)@"
+    replacement: "mongodb://user:<REDACTED_PASSWORD>@"
+    description: "MongoDB connection string with password"
+
+  - name: redis_url
+    pattern: "redis://[^:]*:([^@]+)@"
+    replacement: "redis://:<REDACTED_PASSWORD>@"
+    description: "Redis connection string with password"
+
+  # --- Private Keys (inline detection) ---
+  - name: private_key_header
+    pattern: "-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----"
+    replacement: "-----BEGIN PRIVATE KEY [REDACTED - FILE SHOULD BE EXCLUDED]-----"
+    description: "Private key headers - indicates file should be in exclude list"
+
+# =============================================================================
+# EXCLUDE FILES
+# These files are NEVER backed up - too sensitive or should be regenerated
+# =============================================================================
+exclude_files:
+  # SSH Keys
+  - id_rsa
+  - id_rsa.pub
+  - id_ed25519
+  - id_ed25519.pub
+  - id_ecdsa
+  - id_ecdsa.pub
+  - id_dsa
+  - "*.pem"
+  - "*_key"
+  - "*.ppk"
+
+  # Environment Files
+  - .env
+  - .env.local
+  - ".env.*.local"
+  - .env.production
+  - .env.development
+  - .envrc
+
+  # Credential Files
+  - credentials.json
+  - credentials
+  - "service-account*.json"
+  - gcloud-credentials.json
+  - application_default_credentials.json
+  - .netrc
+  - .npmrc
+  - .pypirc
+
+  # Cloud Provider Credentials
+  - aws-credentials
+  - .aws/credentials
+
+  # Keychain/Password Stores
+  - "*.keychain"
+  - "*.keychain-db"
+  - "login.keychain*"
+
+  # Certificate Private Keys
+  - "*.key"
+  - privkey.pem
+  - server.key
+
+  # Database Files
+  - "*.sqlite"
+  - "*.sqlite3"
+  - "*.db"
+
+# =============================================================================
+# EXCLUDE DIRECTORIES
+# These directories are skipped entirely during backup
+# =============================================================================
+exclude_directories:
+  - node_modules/
+  - .git/
+  - __pycache__/
+  - "*.egg-info/"
+  - venv/
+  - .venv/
+  - .tox/
+  - .pytest_cache/
+  - .mypy_cache/
+  - dist/
+  - build/
+  - "*.xcodeproj/"
+  - "*.xcworkspace/"
+  - DerivedData/
+  - .Trash/
+  - Library/Caches/
+
+  # Cache directories (common patterns)
+  - Cache/
+  - Caches/
+  - CachedData/
+  - CachedExtensionVSIXs/
+  - CachedProfilesData/
+  - CachedConfigurations/
+  - "Code Cache/"
+  - GPUCache/
+  - GrShaderCache/
+  - ShaderCache/
+  - DawnGraphiteCache/
+  - DawnWebGPUCache/
+  - NetworkCache/
+
+  # Chromium/Electron runtime data
+  - WebStorage/
+  - "Local Storage/"
+  - "Session Storage/"
+  - IndexedDB/
+  - "Service Worker/"
+  - blob_storage/
+  - shared_proto_db/
+
+  # Log directories
+  - logs/
+  - Logs/
+  - FileProviderLogs/
+  - sessionstore-logs/
+  - CrashReporter/
+  - Crashpad/
+
+  # Temporary and runtime data
+  - tmp/
+  - temp/
+  - Temp/
+  - TransportSecurity/
+
+  # Large regenerable data
+  - workspaceStorage/
+  - Extensions/
+  - clangd/
+
+# =============================================================================
+# EXCLUDE APPS
+# These applications store sync metadata, not user-configurable settings
+# =============================================================================
+exclude_apps:
+  - OneDrive
+  - Dropbox
+  - "Google Drive"
+  - iCloud
+  - CloudMounter
+  - Box
+
+# =============================================================================
+# PURE CONFIG FOCUS - EXCLUDED CONTENT TYPES
+# These patterns ensure we only backup configuration, not runtime state
+# =============================================================================
+exclude_by_pattern:
+  # Cache patterns (anywhere in path)
+  - "**/Cache/**"
+  - "**/Caches/**"
+  - "**/cache/**"
+  - "**/.cache/**"
+  - "**/CachedData/**"
+
+  # Log patterns
+  - "**/logs/**"
+  - "**/Logs/**"
+  - "**/*.log"
+  - "**/log/**"
+
+  # Session/runtime state
+  - "**/Session Storage/**"
+  - "**/Local Storage/**"
+  - "**/IndexedDB/**"
+  - "**/Service Worker/**"
+  - "**/GPUCache/**"
+  - "**/ShaderCache/**"
+
+  # Workspace state (editor-specific)
+  - "**/workspaceStorage/**"
+  - "**/globalStorage/**"
+  - "**/.history/**"
+
+  # Crash reports
+  - "**/Crashpad/**"
+  - "**/CrashReporter/**"
+  - "**/crash_reports/**"
+
+exclude_by_size:
+  # Skip files larger than 10MB (likely not config)
+  max_file_size_mb: 10
+
+exclude_by_extension:
+  # Binary/compiled files
+  - "*.dylib"
+  - "*.so"
+  - "*.dll"
+  - "*.exe"
+  - "*.app"
+
+  # Database files (unless explicitly included in hints)
+  - "*.sqlite"
+  - "*.sqlite3"
+  - "*.db"
+  - "*.sqlite-wal"
+  - "*.sqlite-shm"
